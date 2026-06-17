@@ -614,10 +614,14 @@
               <label>Nombre completo<input id="adminEmployeeName" placeholder="Nombre completo"></label>
               <label>Teléfono<input id="adminEmployeePhone" placeholder="Teléfono"></label>
               <label>Correo<input id="adminEmployeeEmail" type="email" placeholder="Correo opcional"></label>
+              <label>Puesto<input id="adminEmployeePosition" placeholder="Ej. Operario, Líder, Supervisor"></label>
+              <label>Rol operativo<select id="adminEmployeeRoleType"><option value="employee">Funcionario</option><option value="backup">Backup</option><option value="supervisor">Supervisor</option><option value="leader">Líder</option><option value="manager">Project Manager</option></select></label>
               <label>Jornada<select id="adminEmployeeJornada"><option>Completa-Día-Discontinua</option><option>Completa-Día-Continua</option><option>Parcial-Día-Discontinua</option><option>Jornada continua</option></select></label>
               <label>Horas semanales<input id="adminEmployeeHours" type="number" min="1" max="60" step="0.5" value="48"></label>
               <label style="grid-column:1/-1">Proyecto<select id="adminProjectSelect"><option value="">Seleccione proyecto</option></select></label>
               <label style="grid-column:1/-1">Site asignado<select id="adminEmployeeSite"><option value="">Seleccione site</option></select></label>
+              <label style="grid-column:1/-1">Supervisor asignado<select id="adminEmployeeSupervisor"><option value="">Sin supervisor asignado</option></select></label>
+              <label style="display:flex;align-items:center;gap:8px"><input id="adminEmployeeIsBackup" type="checkbox" style="width:auto;min-height:auto"> Es backup/cubre otros sites</label>
               <label style="grid-column:1/-1">Notas<textarea id="adminEmployeeNotes" placeholder="Notas internas"></textarea></label>
             </div>
             <div class="helper" style="margin-top:8px">Requiere sesión Supabase con perfil admin, manager o supervisor autorizado.</div>
@@ -628,6 +632,7 @@
                     <th>Funcionario</th>
                     <th>Cédula</th>
                     <th>Site</th>
+                    <th>Rol</th>
                     <th>Jornada</th>
                     <th>Estado</th>
                     <th>Acción</th>
@@ -734,6 +739,7 @@
     let adminProjectId = null;
     let adminProjects = [];
     let adminEmployees = [];
+    let adminUsers = [];
     let adminSession = null;
     let adminProfile = null;
     let adminAuthorized = false;
@@ -1108,7 +1114,7 @@
       try {
         const { data: projects, error: projectError } = await supabaseClient
           .from("projects")
-          .select("id, project_code, project_name, clients(client_code, client_name)")
+          .select("id, client_id, project_code, project_name, clients(client_code, client_name)")
           .order("project_name", { ascending: true });
         if (projectError) throw projectError;
         adminProjects = projects || [];
@@ -1157,6 +1163,7 @@
         sites = (remoteSites || []).map(normalizeSite);
         saveSites();
         renderAll();
+        await loadAdminUsers();
         await loadEmployees();
         await loadAdminLogs();
         await loadIncidents();
@@ -1179,6 +1186,46 @@
       renderLogs();
       renderSummary();
       renderMetrics();
+    }
+
+    async function loadAdminUsers() {
+      if (!supabaseClient || !adminAuthorized) {
+        adminUsers = [];
+        renderSupervisorOptions();
+        return;
+      }
+      try {
+        const project = adminProjects.find(item => item.id === adminProjectId);
+        let query = supabaseClient
+          .from("user_profiles")
+          .select("id, full_name, email, role, status, project_id, client_id, position")
+          .in("role", ["manager", "supervisor"])
+          .eq("status", "activo");
+        if (adminProjectId && project?.client_id) {
+          query = query.or(`project_id.eq.${adminProjectId},client_id.eq.${project.client_id}`);
+        } else if (adminProjectId) {
+          query = query.eq("project_id", adminProjectId);
+        }
+        const { data, error } = await query.order("full_name", { ascending: true });
+        if (error) throw error;
+        adminUsers = data || [];
+        renderSupervisorOptions();
+      } catch (error) {
+        adminUsers = [];
+        renderSupervisorOptions();
+      }
+    }
+
+    function renderSupervisorOptions() {
+      const select = $("adminEmployeeSupervisor");
+      if (!select) return;
+      const current = select.value;
+      const options = adminUsers.map(user => {
+        const label = `${user.full_name || user.email} (${user.role})`;
+        return `<option value="${user.id}">${escapeHtml(label)}</option>`;
+      }).join("");
+      select.innerHTML = `<option value="">Sin supervisor asignado</option>${options}`;
+      select.value = adminUsers.some(user => user.id === current) ? current : "";
     }
 
     async function saveEmployeeAdmin() {
@@ -1209,9 +1256,13 @@
             employee_code: cedula,
             phone: $("adminEmployeePhone").value.trim() || null,
             email: $("adminEmployeeEmail").value.trim() || null,
+            position: $("adminEmployeePosition").value.trim() || null,
+            role_type: $("adminEmployeeRoleType").value,
             jornada: $("adminEmployeeJornada").value,
             weekly_hours: Number($("adminEmployeeHours").value || 0),
             default_site_id: siteId,
+            supervisor_user_id: $("adminEmployeeSupervisor").value || null,
+            is_backup: $("adminEmployeeIsBackup").checked,
             status: "activo",
             notes: $("adminEmployeeNotes").value.trim() || null,
             updated_at: new Date().toISOString()
@@ -1249,14 +1300,14 @@
       try {
         const { data, error } = await supabaseClient
           .from("employees")
-          .select("id, cedula, employee_code, full_name, phone, email, jornada, weekly_hours, default_site_id, status, notes, sites:default_site_id(site_name)")
+          .select("id, cedula, employee_code, full_name, phone, email, position, role_type, jornada, weekly_hours, default_site_id, supervisor_user_id, is_backup, status, notes, sites:default_site_id(site_name)")
           .eq("project_id", adminProjectId)
           .order("full_name", { ascending: true });
         if (error) throw error;
         adminEmployees = data || [];
         renderEmployees();
       } catch (error) {
-        $("employeesTable").innerHTML = `<tr><td colspan="6"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar funcionarios."))}</div></td></tr>`;
+        $("employeesTable").innerHTML = `<tr><td colspan="7"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar funcionarios."))}</div></td></tr>`;
       }
     }
 
@@ -1268,6 +1319,7 @@
           <td><b>${escapeHtml(employee.full_name || "-")}</b><br><span class="subtle">${escapeHtml(employee.email || employee.phone || "")}</span></td>
           <td>${escapeHtml(employee.cedula || "-")}</td>
           <td>${escapeHtml(employee.sites?.site_name || "Sin asignar")}</td>
+          <td>${escapeHtml(roleTypeLabel(employee.role_type))}<br><span class="subtle">${escapeHtml(employee.position || "")}${employee.is_backup ? " · Backup" : ""}</span></td>
           <td>${escapeHtml(employee.jornada || "-")}<br><span class="subtle">${employee.weekly_hours || "-"} h/sem</span></td>
           <td>${employee.status === "activo" ? `<span class="badge valid">Activo</span>` : `<span class="badge neutral">Inactivo</span>`}</td>
           <td>
@@ -1275,7 +1327,17 @@
             <button class="btn small ${employee.status === "activo" ? "danger" : "blue"}" data-toggle-employee="${employee.id}" style="margin-top:6px">${employee.status === "activo" ? "Desactivar" : "Activar"}</button>
           </td>
         </tr>
-      `).join("") || `<tr><td colspan="6"><div class="empty">No hay funcionarios en este proyecto.</div></td></tr>`;
+      `).join("") || `<tr><td colspan="7"><div class="empty">No hay funcionarios en este proyecto.</div></td></tr>`;
+    }
+
+    function roleTypeLabel(value) {
+      return {
+        employee: "Funcionario",
+        backup: "Backup",
+        supervisor: "Supervisor",
+        leader: "Líder",
+        manager: "Project Manager"
+      }[value] || value || "Funcionario";
     }
 
     function editEmployee(employeeId) {
@@ -1285,9 +1347,13 @@
       $("adminEmployeeName").value = employee.full_name || "";
       $("adminEmployeePhone").value = employee.phone || "";
       $("adminEmployeeEmail").value = employee.email || "";
+      $("adminEmployeePosition").value = employee.position || "";
+      $("adminEmployeeRoleType").value = employee.role_type || "employee";
       $("adminEmployeeJornada").value = employee.jornada || $("adminEmployeeJornada").value;
       $("adminEmployeeHours").value = employee.weekly_hours || 48;
       $("adminEmployeeSite").value = employee.default_site_id || "";
+      $("adminEmployeeSupervisor").value = employee.supervisor_user_id || "";
+      $("adminEmployeeIsBackup").checked = Boolean(employee.is_backup);
       $("adminEmployeeNotes").value = employee.notes || "";
       toast("Funcionario cargado para edición.");
     }
