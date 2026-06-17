@@ -970,6 +970,7 @@
     }
 
     async function upsertSiteToSupabase(site) {
+      await ensureAdminSession();
       if (!supabaseClient || !adminSession || !adminProjectId) {
         toast("Ingrese con Supabase y seleccione un proyecto antes de guardar locales.");
         return null;
@@ -993,7 +994,7 @@
         .upsert(dbPayload, { onConflict: "project_id,site_code" })
         .select("*")
         .single();
-      if (error) throw error;
+      if (error) throw new Error(adminErrorMessage(error, "No se pudo guardar el local."));
       return normalizeSite(data);
     }
 
@@ -1004,6 +1005,22 @@
       renderAdminAuthStatus();
       if (adminSession) await loadAdminData();
       return adminSession;
+    }
+
+    async function ensureAdminSession() {
+      if (!supabaseClient) return null;
+      if (adminSession) return adminSession;
+      const { data } = await supabaseClient.auth.getSession();
+      adminSession = data?.session || null;
+      renderAdminAuthStatus();
+      return adminSession;
+    }
+
+    function adminErrorMessage(error, fallback) {
+      if (error?.code === "42501" || error?.status === 403 || /row-level security|permission|403/i.test(error?.message || "")) {
+        return "Sesión válida, pero sin permisos administrativos. Revise que su usuario esté en user_profiles como admin_general o manager.";
+      }
+      return error?.message || fallback;
     }
 
     function renderAdminAuthStatus() {
@@ -1123,6 +1140,7 @@
     }
 
     async function saveEmployeeAdmin() {
+      await ensureAdminSession();
       if (!supabaseClient || !adminSession || !adminProjectId) {
         toast("Ingrese con Supabase antes de guardar funcionarios.");
         return;
@@ -1169,13 +1187,14 @@
         if (assignError) throw assignError;
         toast(`Funcionario guardado: ${employee.full_name}`);
       } catch (error) {
-        toast(error?.message || "No se pudo guardar el funcionario.");
+        toast(adminErrorMessage(error, "No se pudo guardar el funcionario."));
       } finally {
         $("saveEmployeeAdminBtn").disabled = false;
       }
     }
 
     async function saveProjectAdmin() {
+      await ensureAdminSession();
       if (!supabaseClient || !adminSession) {
         toast("Ingrese con Supabase antes de crear proyectos.");
         return;
@@ -1220,7 +1239,7 @@
         $("adminProjectSelect").value = adminProjectId;
         toast(`Proyecto creado: ${projectName}`);
       } catch (error) {
-        toast(error?.message || "No se pudo crear el proyecto.");
+        toast(adminErrorMessage(error, "No se pudo crear el proyecto."));
       } finally {
         $("saveProjectBtn").disabled = false;
       }
