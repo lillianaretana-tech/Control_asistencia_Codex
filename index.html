@@ -126,6 +126,22 @@
     .view { display: none; }
     .view.active { display: block; }
 
+    body:not(.admin-authenticated) .admin-protected {
+      display: none !important;
+    }
+
+    body.admin-authenticated .admin-login-required {
+      display: none !important;
+    }
+
+    body:not(.admin-session) .session-only {
+      display: none !important;
+    }
+
+    body.admin-authenticated .admin-login-form {
+      display: none !important;
+    }
+
     .grid {
       display: grid;
       gap: 14px;
@@ -378,45 +394,6 @@
       animation: toastIn .2s ease-out;
     }
 
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      display: none;
-      place-items: center;
-      padding: 18px;
-      background: rgba(15, 23, 42, .54);
-    }
-
-    .modal-backdrop.show {
-      display: grid;
-    }
-
-    .modal {
-      width: min(420px, 100%);
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .modal h2 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    .modal-head {
-      padding: 14px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .modal-body {
-      display: grid;
-      gap: 12px;
-      padding: 14px;
-    }
-
     @keyframes toastIn {
       from { transform: translateY(8px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
@@ -457,6 +434,7 @@
             <div class="subtle">Entrada y salida con validación por ubicación</div>
           </div>
         </div>
+        <button id="topLogoutBtn" class="btn small ghost session-only">Salir</button>
       </div>
       <nav class="tabs" aria-label="Vistas">
         <button class="tab-btn active" data-view="attendanceView">Marcar</button>
@@ -534,7 +512,7 @@
         <section class="panel">
           <div class="panel-head">
             <h2>Registros de asistencia</h2>
-            <button id="exportCsvBtn" class="btn small">Exportar CSV</button>
+            <button id="exportCsvBtn" class="btn small admin-protected">Exportar CSV</button>
           </div>
           <div class="panel-body">
             <div id="supabaseStatus" class="status-box" style="margin-bottom:12px">
@@ -543,17 +521,18 @@
             </div>
             <div class="status-box" style="margin-bottom:12px">
               <div class="status-title">Sesión administrativa</div>
-              <div class="form-grid cols-2" style="margin-top:8px">
+              <div class="form-grid cols-2 admin-login-form" style="margin-top:8px">
                 <label>Correo<input id="adminEmail" type="email" autocomplete="email" placeholder="admin@empresa.com"></label>
                 <label>Clave<input id="adminPassword" type="password" autocomplete="current-password" placeholder="Clave"></label>
               </div>
-              <div class="actions primary-actions" style="margin-top:10px">
+              <div class="actions primary-actions admin-login-form" style="margin-top:10px">
                 <button id="adminLoginBtn" class="btn blue">Ingresar con Supabase</button>
                 <button id="adminLogoutBtn" class="btn ghost">Cerrar sesión</button>
               </div>
+              <button id="adminLogoutInlineBtn" class="btn small ghost session-only" style="margin-top:10px">Cerrar sesión</button>
               <div id="adminAuthStatus" class="helper" style="margin-top:8px">Ingrese con correo y clave para administrar datos.</div>
             </div>
-            <div class="filters">
+            <div class="filters admin-protected">
               <label>Fecha<input id="filterDate" type="date"></label>
               <label>Funcionario<input id="filterEmployee" placeholder="Nombre o código"></label>
               <label>Site/local<select id="filterSite"><option value="">Todos</option></select></label>
@@ -563,7 +542,7 @@
               <label>Estado GPS<select id="filterGps"><option value="">Todos</option><option value="valido">Válido</option><option value="fuera_del_sitio">Fuera del sitio</option><option value="sin_permiso">Sin permiso</option><option value="error">Error</option></select></label>
               <label>Orden<select id="filterOrder"><option value="desc">Más recientes</option><option value="asc">Más antiguos</option></select></label>
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap admin-protected">
               <table>
                 <thead>
                   <tr>
@@ -583,7 +562,7 @@
           </div>
         </section>
 
-        <section class="panel" style="margin-top:14px">
+        <section class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
             <h2>Resumen diario por funcionario</h2>
             <span class="subtle" id="summaryHint"></span>
@@ -608,7 +587,7 @@
           </div>
         </section>
 
-        <section class="panel" style="margin-top:14px">
+        <section class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
             <h2>Clientes y proyectos</h2>
             <button id="saveProjectBtn" class="btn small blue">Crear proyecto</button>
@@ -624,7 +603,7 @@
           </div>
         </section>
 
-        <section class="panel" style="margin-top:14px">
+        <section class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
             <h2>Funcionarios y asignación</h2>
             <button id="saveEmployeeAdminBtn" class="btn small blue">Guardar funcionario</button>
@@ -642,10 +621,25 @@
               <label style="grid-column:1/-1">Notas<textarea id="adminEmployeeNotes" placeholder="Notas internas"></textarea></label>
             </div>
             <div class="helper" style="margin-top:8px">Requiere sesión Supabase con perfil admin, manager o supervisor autorizado.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Funcionario</th>
+                    <th>Cédula</th>
+                    <th>Site</th>
+                    <th>Jornada</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="employeesTable"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
-        <section class="panel" style="margin-top:14px">
+        <section class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
             <h2>Incidencias pendientes</h2>
             <button id="refreshIncidentsBtn" class="btn small ghost">Actualizar</button>
@@ -671,15 +665,21 @@
       </section>
 
       <section id="sitesView" class="view">
-        <div class="grid two-col">
+        <section class="panel admin-login-required">
+          <div class="panel-body">
+            <div class="empty">Ingrese en Admin con Supabase para administrar locales.</div>
+          </div>
+        </section>
+        <div class="grid two-col admin-protected">
           <section class="panel">
             <div class="panel-head">
               <h2 id="siteFormTitle">Agregar local</h2>
               <button id="resetSiteFormBtn" class="btn small ghost">Nuevo</button>
             </div>
             <div class="panel-body">
-              <div class="form-grid cols-2">
+                <div class="form-grid cols-2">
                 <input id="siteEditId" type="hidden">
+                <label style="grid-column:1/-1">Proyecto<select id="siteProjectSelect"><option value="">Seleccione proyecto</option></select></label>
                 <label>Nombre del local<input id="siteName" placeholder="Ej. Sucursal San José"></label>
                 <label>Provincia<input id="siteProvince" placeholder="Provincia"></label>
                 <label>Cantón<input id="siteCanton" placeholder="Cantón"></label>
@@ -716,25 +716,6 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <div id="adminModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
-    <div class="modal">
-      <div class="modal-head">
-        <h2 id="adminModalTitle">Ingreso administrativo</h2>
-        <div class="subtle">Ingrese el código para ver reportes y administrar locales.</div>
-      </div>
-      <div class="modal-body">
-        <label>
-          Código admin
-          <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Código de ingreso">
-        </label>
-        <div class="actions primary-actions">
-          <button id="adminPinSubmit" class="btn blue">Ingresar</button>
-          <button id="adminPinCancel" class="btn ghost">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const STORAGE = {
@@ -752,10 +733,10 @@
     let currentEmployee = null;
     let adminProjectId = null;
     let adminProjects = [];
+    let adminEmployees = [];
     let adminSession = null;
-    const ADMIN_PIN = "2468";
-    let pendingAdminView = null;
-
+    let adminProfile = null;
+    let adminAuthorized = false;
     const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
     const LOW_ACCURACY_METERS = 100;
     const seedSites = [
@@ -971,7 +952,7 @@
 
     async function upsertSiteToSupabase(site) {
       await ensureAdminSession();
-      if (!supabaseClient || !adminSession || !adminProjectId) {
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) {
         toast("Ingrese con Supabase y seleccione un proyecto antes de guardar locales.");
         return null;
       }
@@ -1002,18 +983,41 @@
       if (!supabaseClient) return null;
       const { data } = await supabaseClient.auth.getSession();
       adminSession = data?.session || null;
+      await loadAdminProfile();
       renderAdminAuthStatus();
-      if (adminSession) await loadAdminData();
+      if (adminAuthorized) await loadAdminData();
       return adminSession;
     }
 
     async function ensureAdminSession() {
       if (!supabaseClient) return null;
-      if (adminSession) return adminSession;
       const { data } = await supabaseClient.auth.getSession();
       adminSession = data?.session || null;
+      await loadAdminProfile();
       renderAdminAuthStatus();
       return adminSession;
+    }
+
+    async function loadAdminProfile() {
+      adminProfile = null;
+      adminAuthorized = false;
+      if (!supabaseClient || !adminSession?.user?.id) return null;
+      try {
+        const { data, error } = await supabaseClient
+          .from("user_profiles")
+          .select("id, role, full_name, email, status, client_id, project_id")
+          .eq("auth_user_id", adminSession.user.id)
+          .eq("status", "activo")
+          .maybeSingle();
+        if (error) throw error;
+        adminProfile = data || null;
+        adminAuthorized = Boolean(adminProfile && ["admin_general", "manager", "supervisor"].includes(adminProfile.role));
+        return adminProfile;
+      } catch (error) {
+        adminProfile = null;
+        adminAuthorized = false;
+        return null;
+      }
     }
 
     function adminErrorMessage(error, fallback) {
@@ -1026,11 +1030,21 @@
     function renderAdminAuthStatus() {
       const el = $("adminAuthStatus");
       if (!el) return;
-      if (adminSession?.user?.email) {
-        el.textContent = `Sesión activa: ${adminSession.user.email}`;
+      if (adminAuthorized) {
+        el.textContent = `Sesión activa: ${adminSession.user.email} (${adminProfile.role})`;
+      } else if (adminSession?.user?.email) {
+        el.textContent = `Sesión activa: ${adminSession.user.email}, pero sin perfil administrativo autorizado.`;
       } else {
         el.textContent = "Ingrese con correo y clave para administrar datos.";
       }
+      document.body.classList.toggle("admin-session", Boolean(adminSession));
+      document.body.classList.toggle("admin-authenticated", Boolean(adminAuthorized));
+      document.querySelectorAll(".admin-protected").forEach(node => {
+        node.style.display = adminAuthorized ? "" : "none";
+      });
+      document.querySelectorAll(".admin-login-required").forEach(node => {
+        node.style.display = adminAuthorized ? "none" : "";
+      });
     }
 
     async function adminLogin() {
@@ -1049,9 +1063,15 @@
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         adminSession = data.session;
+        await loadAdminProfile();
         renderAdminAuthStatus();
-        await loadAdminData();
-        toast("Sesión administrativa iniciada.");
+        if (adminAuthorized) {
+          await loadAdminData();
+          toast("Sesión administrativa iniciada.");
+        } else {
+          clearAdminData();
+          toast("Sesión activa, pero sin perfil administrativo autorizado.");
+        }
       } catch (error) {
         toast(error?.message || "No se pudo iniciar sesión.");
       } finally {
@@ -1063,13 +1083,28 @@
       if (!supabaseClient) return;
       await supabaseClient.auth.signOut();
       adminSession = null;
+      adminProfile = null;
+      adminAuthorized = false;
       adminProjectId = null;
+      clearAdminData();
       renderAdminAuthStatus();
       toast("Sesión cerrada.");
     }
 
+    function clearAdminData() {
+      logs = [];
+      sites = [];
+      adminProjects = [];
+      adminEmployees = [];
+      saveLogs();
+      saveSites();
+      renderAll();
+      renderEmployees();
+      renderIncidents([]);
+    }
+
     async function loadAdminData() {
-      if (!supabaseClient || !adminSession) return;
+      if (!supabaseClient || !adminAuthorized) return;
       try {
         const { data: projects, error: projectError } = await supabaseClient
           .from("projects")
@@ -1082,6 +1117,7 @@
           adminProjectId = adminProjects[0]?.id || null;
         }
         $("adminProjectSelect").value = adminProjectId || "";
+        if ($("siteProjectSelect")) $("siteProjectSelect").value = adminProjectId || "";
         await selectAdminProject(adminProjectId);
       } catch (error) {
         toast(error?.message || "No se pudieron cargar datos administrativos.");
@@ -1089,20 +1125,25 @@
     }
 
     function renderProjectOptions() {
-      const select = $("adminProjectSelect");
-      if (!select) return;
-      select.innerHTML = `<option value="">Seleccione proyecto</option>` + adminProjects.map(project => {
-        const client = project.clients?.client_name || project.clients?.client_code || "";
-        return `<option value="${project.id}">${escapeHtml(project.project_name)}${client ? " - " + escapeHtml(client) : ""}</option>`;
+      const options = `<option value="">Seleccione proyecto</option>` + adminProjects.map(project => {
+        return `<option value="${project.id}">${escapeHtml(project.project_name)}</option>`;
       }).join("");
+      const select = $("adminProjectSelect");
+      if (select) select.innerHTML = options;
+      const siteSelect = $("siteProjectSelect");
+      if (siteSelect) siteSelect.innerHTML = options;
     }
 
     async function selectAdminProject(projectId) {
       adminProjectId = projectId || null;
+      if ($("adminProjectSelect")) $("adminProjectSelect").value = adminProjectId || "";
+      if ($("siteProjectSelect")) $("siteProjectSelect").value = adminProjectId || "";
       if (!adminProjectId) {
         sites = [];
         logs = [];
+        adminEmployees = [];
         renderAll();
+        renderEmployees();
         renderIncidents([]);
         return;
       }
@@ -1116,6 +1157,7 @@
         sites = (remoteSites || []).map(normalizeSite);
         saveSites();
         renderAll();
+        await loadEmployees();
         await loadAdminLogs();
         await loadIncidents();
       } catch (error) {
@@ -1124,7 +1166,7 @@
     }
 
     async function loadAdminLogs() {
-      if (!supabaseClient || !adminSession || !adminProjectId) return;
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) return;
       const { data, error } = await supabaseClient
         .from("attendance_logs")
         .select("*, employees(full_name, cedula), sites:detected_site_id(site_name, province, canton)")
@@ -1141,8 +1183,12 @@
 
     async function saveEmployeeAdmin() {
       await ensureAdminSession();
-      if (!supabaseClient || !adminSession || !adminProjectId) {
+      if (!supabaseClient || !adminAuthorized) {
         toast("Ingrese con Supabase antes de guardar funcionarios.");
+        return;
+      }
+      if (!adminProjectId) {
+        toast("Seleccione el proyecto donde desea crear el funcionario.");
         return;
       }
       const cedula = $("adminEmployeeCedula").value.trim();
@@ -1186,6 +1232,7 @@
           }, { onConflict: "employee_id,site_id,assignment_type,valid_from" });
         if (assignError) throw assignError;
         toast(`Funcionario guardado: ${employee.full_name}`);
+        await loadEmployees();
       } catch (error) {
         toast(adminErrorMessage(error, "No se pudo guardar el funcionario."));
       } finally {
@@ -1193,9 +1240,82 @@
       }
     }
 
+    async function loadEmployees() {
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) {
+        adminEmployees = [];
+        renderEmployees();
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient
+          .from("employees")
+          .select("id, cedula, employee_code, full_name, phone, email, jornada, weekly_hours, default_site_id, status, notes, sites:default_site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .order("full_name", { ascending: true });
+        if (error) throw error;
+        adminEmployees = data || [];
+        renderEmployees();
+      } catch (error) {
+        $("employeesTable").innerHTML = `<tr><td colspan="6"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar funcionarios."))}</div></td></tr>`;
+      }
+    }
+
+    function renderEmployees() {
+      const table = $("employeesTable");
+      if (!table) return;
+      table.innerHTML = adminEmployees.map(employee => `
+        <tr class="${employee.status !== "activo" ? "alert-warn" : ""}">
+          <td><b>${escapeHtml(employee.full_name || "-")}</b><br><span class="subtle">${escapeHtml(employee.email || employee.phone || "")}</span></td>
+          <td>${escapeHtml(employee.cedula || "-")}</td>
+          <td>${escapeHtml(employee.sites?.site_name || "Sin asignar")}</td>
+          <td>${escapeHtml(employee.jornada || "-")}<br><span class="subtle">${employee.weekly_hours || "-"} h/sem</span></td>
+          <td>${employee.status === "activo" ? `<span class="badge valid">Activo</span>` : `<span class="badge neutral">Inactivo</span>`}</td>
+          <td>
+            <button class="btn small ghost" data-edit-employee="${employee.id}">Editar</button>
+            <button class="btn small ${employee.status === "activo" ? "danger" : "blue"}" data-toggle-employee="${employee.id}" style="margin-top:6px">${employee.status === "activo" ? "Desactivar" : "Activar"}</button>
+          </td>
+        </tr>
+      `).join("") || `<tr><td colspan="6"><div class="empty">No hay funcionarios en este proyecto.</div></td></tr>`;
+    }
+
+    function editEmployee(employeeId) {
+      const employee = adminEmployees.find(item => item.id === employeeId);
+      if (!employee) return;
+      $("adminEmployeeCedula").value = employee.cedula || "";
+      $("adminEmployeeName").value = employee.full_name || "";
+      $("adminEmployeePhone").value = employee.phone || "";
+      $("adminEmployeeEmail").value = employee.email || "";
+      $("adminEmployeeJornada").value = employee.jornada || $("adminEmployeeJornada").value;
+      $("adminEmployeeHours").value = employee.weekly_hours || 48;
+      $("adminEmployeeSite").value = employee.default_site_id || "";
+      $("adminEmployeeNotes").value = employee.notes || "";
+      toast("Funcionario cargado para edición.");
+    }
+
+    async function toggleEmployee(employeeId) {
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase para cambiar estado.");
+        return;
+      }
+      const employee = adminEmployees.find(item => item.id === employeeId);
+      if (!employee) return;
+      const nextStatus = employee.status === "activo" ? "inactivo" : "activo";
+      try {
+        const { error } = await supabaseClient
+          .from("employees")
+          .update({ status: nextStatus, updated_at: new Date().toISOString() })
+          .eq("id", employeeId);
+        if (error) throw error;
+        toast(nextStatus === "activo" ? "Funcionario activado." : "Funcionario desactivado.");
+        await loadEmployees();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo cambiar el estado."));
+      }
+    }
+
     async function saveProjectAdmin() {
       await ensureAdminSession();
-      if (!supabaseClient || !adminSession) {
+      if (!supabaseClient || !adminAuthorized) {
         toast("Ingrese con Supabase antes de crear proyectos.");
         return;
       }
@@ -1209,32 +1329,15 @@
       }
       $("saveProjectBtn").disabled = true;
       try {
-        const { data: client, error: clientError } = await supabaseClient
-          .from("clients")
-          .upsert({
-            client_code: clientCode,
-            client_name: clientName,
-            status: "activo",
-            updated_at: new Date().toISOString()
-          }, { onConflict: "client_code" })
-          .select("id")
-          .single();
-        if (clientError) throw clientError;
-
-        const { data: project, error: projectError } = await supabaseClient
-          .from("projects")
-          .upsert({
-            client_id: client.id,
-            project_code: projectCode,
-            project_name: projectName,
-            default_radius_meters: 100,
-            status: "activo",
-            updated_at: new Date().toISOString()
-          }, { onConflict: "client_id,project_code" })
-          .select("id")
-          .single();
-        if (projectError) throw projectError;
-        adminProjectId = project.id;
+        const { data, error } = await supabaseClient.rpc("admin_create_project", {
+          p_client_name: clientName,
+          p_client_code: clientCode,
+          p_project_name: projectName,
+          p_project_code: projectCode
+        });
+        if (error) throw error;
+        const project = Array.isArray(data) ? data[0] : data;
+        adminProjectId = project?.project_id || null;
         await loadAdminData();
         $("adminProjectSelect").value = adminProjectId;
         toast(`Proyecto creado: ${projectName}`);
@@ -1246,7 +1349,7 @@
     }
 
     async function loadIncidents() {
-      if (!supabaseClient || !adminSession || !adminProjectId) return;
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) return;
       try {
         const { data, error } = await supabaseClient
           .from("attendance_incidents")
@@ -1279,7 +1382,7 @@
     }
 
     async function resolveIncident(incidentId, status) {
-      if (!supabaseClient || !adminSession) {
+      if (!supabaseClient || !adminAuthorized) {
         toast("Ingrese con Supabase para resolver incidencias.");
         return;
       }
@@ -1313,14 +1416,6 @@
       return String(value || "").trim().toLowerCase();
     }
 
-    function isAdminView(viewId) {
-      return ["adminView", "sitesView"].includes(viewId);
-    }
-
-    function isAdminAuthenticated() {
-      return sessionStorage.getItem("gps_attendance_admin_auth") === "true";
-    }
-
     function setActiveView(viewId) {
       document.querySelectorAll(".tab-btn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.view === viewId);
@@ -1328,39 +1423,6 @@
       document.querySelectorAll(".view").forEach(view => {
         view.classList.toggle("active", view.id === viewId);
       });
-    }
-
-    function requestAdminAccess(viewId) {
-      pendingAdminView = viewId;
-      $("adminPinInput").value = "";
-      $("adminModal").classList.add("show");
-      window.setTimeout(() => $("adminPinInput").focus(), 50);
-    }
-
-    function closeAdminModal() {
-      $("adminModal").classList.remove("show");
-      pendingAdminView = null;
-    }
-
-    function switchView(viewId) {
-      if (isAdminView(viewId) && !isAdminAuthenticated()) {
-        requestAdminAccess(viewId);
-        return;
-      }
-      setActiveView(viewId);
-    }
-
-    function submitAdminPin() {
-      if ($("adminPinInput").value.trim() !== ADMIN_PIN) {
-        toast("Código administrativo incorrecto.");
-        $("adminPinInput").select();
-        return;
-      }
-      sessionStorage.setItem("gps_attendance_admin_auth", "true");
-      const target = pendingAdminView || "adminView";
-      closeAdminModal();
-      setActiveView(target);
-      toast("Acceso administrativo habilitado.");
     }
 
     function uid(prefix) {
@@ -1496,9 +1558,11 @@
       const adminSite = $("adminEmployeeSite");
       if (adminSite) {
         const current = adminSite.value;
-        adminSite.innerHTML = `<option value="">Seleccione site</option>` + sites
-          .map(site => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.site_name)} - ${escapeHtml(site.provincia || "")}</option>`)
-          .join("");
+        adminSite.innerHTML = sites.length
+          ? `<option value="">Seleccione site</option>` + sites
+            .map(site => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.site_name)}</option>`)
+            .join("")
+          : `<option value="">Este proyecto no tiene sites. Cree uno en Locales.</option>`;
         adminSite.value = sites.some(site => site.site_id === current) ? current : "";
       }
     }
@@ -1698,6 +1762,10 @@
     }
 
     function renderLogs() {
+      if (!adminAuthorized) {
+        $("logsTable").innerHTML = `<tr><td colspan="8"><div class="empty">Ingrese con una cuenta administrativa para ver registros.</div></td></tr>`;
+        return;
+      }
       const rows = filteredLogs().map(log => {
         const alertClass = log.gps_status === "fuera_del_sitio" ? "alert-out" : ["sin_permiso", "error"].includes(log.gps_status) ? "alert-warn" : "";
         const distance = log.distance_to_site_meters == null ? "-" : `${log.distance_to_site_meters} m`;
@@ -1719,6 +1787,11 @@
     }
 
     function renderSummary() {
+      if (!adminAuthorized) {
+        $("summaryTable").innerHTML = `<tr><td colspan="7"><div class="empty">Ingrese con una cuenta administrativa para ver el resumen.</div></td></tr>`;
+        $("summaryHint").textContent = "";
+        return;
+      }
       const filtered = filteredLogs().slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       const groups = new Map();
       filtered.forEach(log => {
@@ -1982,18 +2055,8 @@
     function bindEvents() {
       document.querySelectorAll(".tab-btn").forEach(button => {
         button.addEventListener("click", () => {
-          switchView(button.dataset.view);
+          setActiveView(button.dataset.view);
         });
-      });
-
-      $("adminPinSubmit").addEventListener("click", submitAdminPin);
-      $("adminPinCancel").addEventListener("click", closeAdminModal);
-      $("adminPinInput").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") submitAdminPin();
-        if (event.key === "Escape") closeAdminModal();
-      });
-      $("adminModal").addEventListener("click", (event) => {
-        if (event.target.id === "adminModal") closeAdminModal();
       });
 
       $("employeeCode").addEventListener("change", () => {
@@ -2020,10 +2083,18 @@
       $("exportCsvBtn").addEventListener("click", exportCsv);
       $("adminLoginBtn").addEventListener("click", adminLogin);
       $("adminLogoutBtn").addEventListener("click", adminLogout);
+      $("topLogoutBtn").addEventListener("click", adminLogout);
       $("saveProjectBtn").addEventListener("click", saveProjectAdmin);
       $("saveEmployeeAdminBtn").addEventListener("click", saveEmployeeAdmin);
       $("adminProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
+      $("siteProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
       $("refreshIncidentsBtn").addEventListener("click", loadIncidents);
+      $("employeesTable").addEventListener("click", (event) => {
+        const editId = event.target.dataset.editEmployee;
+        const toggleId = event.target.dataset.toggleEmployee;
+        if (editId) editEmployee(editId);
+        if (toggleId) toggleEmployee(toggleId);
+      });
       $("incidentsTable").addEventListener("click", (event) => {
         const id = event.target.dataset.incidentId;
         const action = event.target.dataset.incidentAction;
