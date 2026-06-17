@@ -542,9 +542,16 @@
               <div class="subtle">La app usa Supabase cuando está disponible y localStorage como respaldo.</div>
             </div>
             <div class="status-box" style="margin-bottom:12px">
-              <div class="status-title">Prueba con ubicación real</div>
-              <div class="subtle">Temporal: crea un site de prueba con el GPS actual y lo asigna a la cédula escrita en Marcar.</div>
-              <button id="createGpsTestSiteBtn" class="btn small blue" style="margin-top:8px">Crear site con mi GPS</button>
+              <div class="status-title">Sesión administrativa</div>
+              <div class="form-grid cols-2" style="margin-top:8px">
+                <label>Correo<input id="adminEmail" type="email" autocomplete="email" placeholder="admin@empresa.com"></label>
+                <label>Clave<input id="adminPassword" type="password" autocomplete="current-password" placeholder="Clave"></label>
+              </div>
+              <div class="actions primary-actions" style="margin-top:10px">
+                <button id="adminLoginBtn" class="btn blue">Ingresar con Supabase</button>
+                <button id="adminLogoutBtn" class="btn ghost">Cerrar sesión</button>
+              </div>
+              <div id="adminAuthStatus" class="helper" style="margin-top:8px">Ingrese con correo y clave para administrar datos.</div>
             </div>
             <div class="filters">
               <label>Fecha<input id="filterDate" type="date"></label>
@@ -603,12 +610,45 @@
 
         <section class="panel" style="margin-top:14px">
           <div class="panel-head">
-            <h2>SQL para Supabase</h2>
-            <button id="copySqlBtn" class="btn small ghost">Copiar SQL</button>
+            <h2>Funcionarios y asignación</h2>
+            <button id="saveEmployeeAdminBtn" class="btn small blue">Guardar funcionario</button>
           </div>
           <div class="panel-body">
-            <textarea id="schemaSql" readonly style="min-height:260px;font-family:Consolas,monospace;font-size:.78rem"></textarea>
-            <div class="helper" style="margin-top:8px">Ejecute este SQL una vez en el SQL Editor de Supabase si las tablas no existen.</div>
+            <div class="form-grid cols-2">
+              <label>Cédula<input id="adminEmployeeCedula" inputmode="numeric" placeholder="Cédula"></label>
+              <label>Nombre completo<input id="adminEmployeeName" placeholder="Nombre completo"></label>
+              <label>Teléfono<input id="adminEmployeePhone" placeholder="Teléfono"></label>
+              <label>Correo<input id="adminEmployeeEmail" type="email" placeholder="Correo opcional"></label>
+              <label>Jornada<select id="adminEmployeeJornada"><option>Completa-Día-Discontinua</option><option>Completa-Día-Continua</option><option>Parcial-Día-Discontinua</option><option>Jornada continua</option></select></label>
+              <label>Horas semanales<input id="adminEmployeeHours" type="number" min="1" max="60" step="0.5" value="48"></label>
+              <label style="grid-column:1/-1">Site asignado<select id="adminEmployeeSite"><option value="">Seleccione site</option></select></label>
+              <label style="grid-column:1/-1">Notas<textarea id="adminEmployeeNotes" placeholder="Notas internas"></textarea></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Requiere sesión Supabase con perfil admin, manager o supervisor autorizado.</div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Incidencias pendientes</h2>
+            <button id="refreshIncidentsBtn" class="btn small ghost">Actualizar</button>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Funcionario</th>
+                    <th>Site</th>
+                    <th>Tipo</th>
+                    <th>Comentario</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="incidentsTable"></tbody>
+              </table>
+            </div>
           </div>
         </section>
       </section>
@@ -693,21 +733,13 @@
       : null;
     let supabaseOnline = false;
     let currentEmployee = null;
+    let adminProjectId = null;
+    let adminSession = null;
     const ADMIN_PIN = "2468";
     let pendingAdminView = null;
 
     const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
     const LOW_ACCURACY_METERS = 100;
-    const SCHEMA_SQL = `Schema actualizado:
-
-1) reset_old_mvp_tables.sql
-2) supabase_schema_multi_cliente.sql
-3) import_claro_sites_from_directorio.sql
-4) supabase_rpc_sites_for_employee.sql
-5) supabase_rpc_create_test_site_from_gps.sql (solo para pruebas con ubicacion real)
-
-La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionarios por cedula y registra marcas mediante RPC.`;
-
     const seedSites = [
       {
         site_id: "SJ-CENTRO",
@@ -924,6 +956,212 @@ La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionar
       setSupabaseStatus("error", "La administración de locales requiere login administrativo en la siguiente fase.");
     }
 
+    async function refreshAdminSession() {
+      if (!supabaseClient) return null;
+      const { data } = await supabaseClient.auth.getSession();
+      adminSession = data?.session || null;
+      renderAdminAuthStatus();
+      if (adminSession) await loadAdminData();
+      return adminSession;
+    }
+
+    function renderAdminAuthStatus() {
+      const el = $("adminAuthStatus");
+      if (!el) return;
+      if (adminSession?.user?.email) {
+        el.textContent = `Sesión activa: ${adminSession.user.email}`;
+      } else {
+        el.textContent = "Ingrese con correo y clave para administrar datos.";
+      }
+    }
+
+    async function adminLogin() {
+      if (!supabaseClient) {
+        toast("Supabase no está disponible.");
+        return;
+      }
+      const email = $("adminEmail").value.trim();
+      const password = $("adminPassword").value;
+      if (!email || !password) {
+        toast("Ingrese correo y clave.");
+        return;
+      }
+      $("adminLoginBtn").disabled = true;
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        adminSession = data.session;
+        renderAdminAuthStatus();
+        await loadAdminData();
+        toast("Sesión administrativa iniciada.");
+      } catch (error) {
+        toast(error?.message || "No se pudo iniciar sesión.");
+      } finally {
+        $("adminLoginBtn").disabled = false;
+      }
+    }
+
+    async function adminLogout() {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      adminSession = null;
+      adminProjectId = null;
+      renderAdminAuthStatus();
+      toast("Sesión cerrada.");
+    }
+
+    async function loadAdminData() {
+      if (!supabaseClient || !adminSession) return;
+      try {
+        const { data: project, error: projectError } = await supabaseClient
+          .from("projects")
+          .select("id, project_name, clients(client_code, client_name)")
+          .eq("project_code", "CLARO_CR_OPERACION")
+          .maybeSingle();
+        if (projectError) throw projectError;
+        adminProjectId = project?.id || null;
+
+        const { data: remoteSites, error: sitesError } = await supabaseClient
+          .from("sites")
+          .select("*")
+          .eq("project_id", adminProjectId)
+          .order("site_name", { ascending: true });
+        if (sitesError) throw sitesError;
+        sites = (remoteSites || []).map(normalizeSite);
+        saveSites();
+        renderAll();
+        await loadAdminLogs();
+        await loadIncidents();
+      } catch (error) {
+        toast(error?.message || "No se pudieron cargar datos administrativos.");
+      }
+    }
+
+    async function loadAdminLogs() {
+      if (!supabaseClient || !adminSession || !adminProjectId) return;
+      const { data, error } = await supabaseClient
+        .from("attendance_logs")
+        .select("*, employees(full_name, cedula), sites:detected_site_id(site_name, province, canton)")
+        .eq("project_id", adminProjectId)
+        .order("timestamp", { ascending: false })
+        .limit(1000);
+      if (error) throw error;
+      logs = (data || []).map(normalizeLog);
+      saveLogs();
+      renderLogs();
+      renderSummary();
+      renderMetrics();
+    }
+
+    async function saveEmployeeAdmin() {
+      if (!supabaseClient || !adminSession || !adminProjectId) {
+        toast("Ingrese con Supabase antes de guardar funcionarios.");
+        return;
+      }
+      const cedula = $("adminEmployeeCedula").value.trim();
+      const fullName = $("adminEmployeeName").value.trim();
+      const siteId = $("adminEmployeeSite").value;
+      if (!cedula || !fullName || !siteId) {
+        toast("Complete cédula, nombre y site asignado.");
+        return;
+      }
+      $("saveEmployeeAdminBtn").disabled = true;
+      try {
+        const { data: employee, error: empError } = await supabaseClient
+          .from("employees")
+          .upsert({
+            project_id: adminProjectId,
+            cedula,
+            full_name: fullName,
+            employee_code: cedula,
+            phone: $("adminEmployeePhone").value.trim() || null,
+            email: $("adminEmployeeEmail").value.trim() || null,
+            jornada: $("adminEmployeeJornada").value,
+            weekly_hours: Number($("adminEmployeeHours").value || 0),
+            default_site_id: siteId,
+            status: "activo",
+            notes: $("adminEmployeeNotes").value.trim() || null,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "project_id,cedula" })
+          .select("id, full_name, cedula")
+          .single();
+        if (empError) throw empError;
+
+        const { error: assignError } = await supabaseClient
+          .from("employee_site_assignments")
+          .upsert({
+            employee_id: employee.id,
+            site_id: siteId,
+            assignment_type: "principal",
+            valid_from: todayISO(),
+            status: "activo",
+            notes: "Asignación principal desde admin"
+          }, { onConflict: "employee_id,site_id,assignment_type,valid_from" });
+        if (assignError) throw assignError;
+        toast(`Funcionario guardado: ${employee.full_name}`);
+      } catch (error) {
+        toast(error?.message || "No se pudo guardar el funcionario.");
+      } finally {
+        $("saveEmployeeAdminBtn").disabled = false;
+      }
+    }
+
+    async function loadIncidents() {
+      if (!supabaseClient || !adminSession || !adminProjectId) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from("attendance_incidents")
+          .select("id, created_at, incident_type, status, employee_comment, employees(full_name, cedula), sites:site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .eq("status", "pendiente")
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        renderIncidents(data || []);
+      } catch (error) {
+        $("incidentsTable").innerHTML = `<tr><td colspan="6"><div class="empty">${escapeHtml(error?.message || "No se pudieron cargar incidencias.")}</div></td></tr>`;
+      }
+    }
+
+    function renderIncidents(items) {
+      $("incidentsTable").innerHTML = items.map(item => `
+        <tr>
+          <td>${fmtDateTime.format(new Date(item.created_at))}</td>
+          <td><b>${escapeHtml(item.employees?.full_name || "-")}</b><br><span class="subtle">${escapeHtml(item.employees?.cedula || "")}</span></td>
+          <td>${escapeHtml(item.sites?.site_name || "Sin sitio")}</td>
+          <td>${escapeHtml(alertLabel(item.incident_type))}</td>
+          <td>${escapeHtml(item.employee_comment || "-")}</td>
+          <td>
+            <button class="btn small blue" data-incident-action="aprobada" data-incident-id="${item.id}">Aprobar</button>
+            <button class="btn small danger" data-incident-action="rechazada" data-incident-id="${item.id}" style="margin-top:6px">Rechazar</button>
+          </td>
+        </tr>
+      `).join("") || `<tr><td colspan="6"><div class="empty">No hay incidencias pendientes.</div></td></tr>`;
+    }
+
+    async function resolveIncident(incidentId, status) {
+      if (!supabaseClient || !adminSession) {
+        toast("Ingrese con Supabase para resolver incidencias.");
+        return;
+      }
+      const comment = window.prompt(status === "aprobada" ? "Comentario de aprobación" : "Comentario de rechazo") || "";
+      try {
+        const { error } = await supabaseClient
+          .from("attendance_incidents")
+          .update({
+            status,
+            supervisor_comment: comment,
+            resolved_at: new Date().toISOString()
+          })
+          .eq("id", incidentId);
+        if (error) throw error;
+        toast(status === "aprobada" ? "Incidencia aprobada." : "Incidencia rechazada.");
+        await loadIncidents();
+      } catch (error) {
+        toast(error?.message || "No se pudo resolver la incidencia.");
+      }
+    }
+
     function toast(message) {
       const el = $("toast");
       el.textContent = message;
@@ -1098,6 +1336,14 @@ La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionar
       fillSelect("filterSite", sites.map(site => site.site_name).sort(), "Todos");
       fillSelect("filterProvince", [...new Set(sites.map(site => site.provincia).filter(Boolean))].sort(), "Todas");
       fillSelect("filterCanton", [...new Set(sites.map(site => site.canton).filter(Boolean))].sort(), "Todos");
+      const adminSite = $("adminEmployeeSite");
+      if (adminSite) {
+        const current = adminSite.value;
+        adminSite.innerHTML = `<option value="">Seleccione site</option>` + sites
+          .map(site => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.site_name)} - ${escapeHtml(site.provincia || "")}</option>`)
+          .join("");
+        adminSite.value = sites.some(site => site.site_id === current) ? current : "";
+      }
     }
 
     function parseSiteSearch() {
@@ -1527,45 +1773,6 @@ La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionar
       }
     }
 
-    async function createGpsTestSite() {
-      const cedula = $("employeeCode").value.trim();
-      if (!cedula) {
-        toast("Primero escriba la cédula en la pantalla Marcar.");
-        switchView("attendanceView");
-        $("employeeCode").focus();
-        return;
-      }
-      if (!supabaseClient) {
-        toast("Supabase no está disponible.");
-        return;
-      }
-
-      $("createGpsTestSiteBtn").disabled = true;
-      $("createGpsTestSiteBtn").textContent = "Capturando GPS...";
-      try {
-        const position = await getCurrentPosition();
-        const { latitude, longitude, accuracy } = position.coords;
-        $("createGpsTestSiteBtn").textContent = "Guardando...";
-        const { data, error } = await supabaseClient.rpc("create_test_site_from_gps", {
-          p_cedula: cedula,
-          p_full_name: $("employeeName").value.trim() || "Funcionario prueba GPS",
-          p_latitude: latitude,
-          p_longitude: longitude,
-          p_accuracy_meters: Number.isFinite(accuracy) ? Math.round(accuracy) : null
-        });
-        if (error) throw error;
-        await loadEmployeeByCedula();
-        const created = Array.isArray(data) ? data[0] : data;
-        toast(`Site de prueba creado y asignado a ${created?.cedula || cedula}.`);
-        switchView("attendanceView");
-      } catch (error) {
-        toast(error?.message || "No se pudo crear el site de prueba.");
-      } finally {
-        $("createGpsTestSiteBtn").disabled = false;
-        $("createGpsTestSiteBtn").textContent = "Crear site con mi GPS";
-      }
-    }
-
     function exportCsv() {
       const rows = filteredLogs();
       const headers = [
@@ -1640,15 +1847,14 @@ La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionar
       $("checkOutBtn").addEventListener("click", () => registerAttendance("salida"));
       $("detectSiteBtn").addEventListener("click", detectCurrentSite);
       $("exportCsvBtn").addEventListener("click", exportCsv);
-      $("createGpsTestSiteBtn").addEventListener("click", createGpsTestSite);
-      $("copySqlBtn").addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(SCHEMA_SQL);
-          toast("SQL copiado al portapapeles.");
-        } catch (error) {
-          $("schemaSql").select();
-          toast("Seleccione y copie el SQL manualmente.");
-        }
+      $("adminLoginBtn").addEventListener("click", adminLogin);
+      $("adminLogoutBtn").addEventListener("click", adminLogout);
+      $("saveEmployeeAdminBtn").addEventListener("click", saveEmployeeAdmin);
+      $("refreshIncidentsBtn").addEventListener("click", loadIncidents);
+      $("incidentsTable").addEventListener("click", (event) => {
+        const id = event.target.dataset.incidentId;
+        const action = event.target.dataset.incidentAction;
+        if (id && action) resolveIncident(id, action);
       });
       ["filterDate", "filterEmployee", "filterSite", "filterProvince", "filterCanton", "filterType", "filterGps", "filterOrder"]
         .forEach(id => $(id).addEventListener("input", () => { renderLogs(); renderSummary(); }));
@@ -1674,9 +1880,9 @@ La app ya no usa el schema simple del MVP. El flujo operativo consulta funcionar
     hydrateEmployee();
     bindEvents();
     startClock();
-    $("schemaSql").value = SCHEMA_SQL;
     renderAll();
     loadSupabaseData();
+    refreshAdminSession();
   </script>
 </body>
 </html>
