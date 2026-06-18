@@ -646,6 +646,49 @@
 
         <section class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
+            <h2>Horarios por funcionario</h2>
+            <button id="saveScheduleBtn" class="btn small blue">Guardar horario</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label style="grid-column:1/-1">Funcionario<select id="scheduleEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Defina el horario esperado por día. El sistema lo usará para calcular tardías, salidas anticipadas, ausencias y horas trabajadas.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Día</th>
+                    <th>Libre</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Inicio descanso</th>
+                    <th>Fin descanso</th>
+                    <th>Horas esperadas</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduleTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Importar horarios (Excel)</h2>
+            <button id="runScheduleImportBtn" class="btn small blue" disabled>Importar válidas</button>
+          </div>
+          <div class="panel-body">
+            <div class="helper">Use la plantilla oficial (hoja "horarios", cabecera en la fila 3). Se importan al <b>proyecto seleccionado arriba</b>, resolviendo cada funcionario por cédula o código. Las filas con error se omiten.</div>
+            <div class="form-grid cols-2" style="margin-top:10px">
+              <label style="grid-column:1/-1">Archivo .xlsx<input type="file" id="scheduleImportFile" accept=".xlsx,.xls"></label>
+            </div>
+            <div id="scheduleImportPreview" style="margin-top:12px"><div class="empty">Seleccione un archivo para previsualizar.</div></div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
             <h2>Incidencias pendientes</h2>
             <button id="refreshIncidentsBtn" class="btn small ghost">Actualizar</button>
           </div>
@@ -665,6 +708,59 @@
                 <tbody id="incidentsTable"></tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Solicitudes (permisos, vacaciones, coberturas)</h2>
+            <button id="saveRequestBtn" class="btn small blue">Guardar solicitud</button>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid cols-2">
+              <label>Funcionario<select id="requestEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
+              <label>Tipo<select id="requestType">
+                <option value="permiso_horas">Permiso por horas</option>
+                <option value="permiso_dia">Permiso por día</option>
+                <option value="ausencia_justificada">Ausencia justificada</option>
+                <option value="vacaciones">Vacaciones</option>
+                <option value="incapacidad">Incapacidad</option>
+                <option value="cobertura">Cobertura en otro local</option>
+                <option value="cambio_horario">Cambio temporal de horario</option>
+              </select></label>
+              <label>Desde<input type="datetime-local" id="requestStart"></label>
+              <label>Hasta<input type="datetime-local" id="requestEnd"></label>
+              <label id="requestCoverWrap" style="grid-column:1/-1;display:none">Local de cobertura<select id="requestCoverSite"><option value="">Seleccione local</option></select></label>
+              <label style="grid-column:1/-1">Motivo<input id="requestReason" placeholder="Motivo de la solicitud"></label>
+              <label style="grid-column:1/-1">Comentarios<textarea id="requestComments" placeholder="Comentarios opcionales"></textarea></label>
+              <label style="grid-column:1/-1">Adjunto (URL)<input id="requestAttachment" placeholder="Enlace a comprobante (opcional)"></label>
+            </div>
+            <div class="helper" style="margin-top:8px">Al aprobarse, el cálculo de asistencia deja de marcar ausencia o tardía indebida en esas fechas.</div>
+            <div style="margin-top:14px" class="table-wrap">
+              <table>
+                <thead><tr><th>Funcionario</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody id="requestsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel admin-protected" style="margin-top:14px">
+          <div class="panel-head">
+            <h2>Cálculo de asistencia</h2>
+            <button id="runAttendanceCalcBtn" class="btn small blue">Calcular</button>
+          </div>
+          <div class="panel-body">
+            <div class="helper">Compara las marcas contra el horario para calcular tardías, salidas anticipadas, horas trabajadas y ausencias. Usa el proyecto seleccionado arriba.</div>
+            <div class="form-grid cols-2" style="margin-top:10px">
+              <label>Desde<input type="date" id="calcDateFrom"></label>
+              <label>Hasta<input type="date" id="calcDateTo"></label>
+            </div>
+            <div id="attendanceCalcSummary" style="margin-top:10px"></div>
+            <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
+              <button id="copyCalcCommentsBtn" class="btn small ghost" style="display:none">Copiar comentarios</button>
+            </div>
+            <div id="attendanceCalcResult" style="margin-top:12px"><div class="empty">Elija el rango de fechas y presione Calcular.</div></div>
           </div>
         </section>
       </section>
@@ -721,6 +817,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const STORAGE = {
@@ -739,6 +836,11 @@
     let adminProjectId = null;
     let adminProjects = [];
     let adminEmployees = [];
+    let adminSchedules = {};
+    let scheduleImportRows = [];
+    let adminAllSchedules = [];
+    let lastCalcRows = [];
+    let adminRequests = [];
     let adminUsers = [];
     let adminSession = null;
     let adminProfile = null;
@@ -1151,6 +1253,9 @@
         renderAll();
         renderEmployees();
         renderIncidents([]);
+        populateScheduleEmployeeSelect();
+        adminRequests = [];
+        renderRequests();
         return;
       }
       try {
@@ -1165,8 +1270,12 @@
         renderAll();
         await loadAdminUsers();
         await loadEmployees();
+        populateScheduleEmployeeSelect();
+        await loadAllSchedules();
         await loadAdminLogs();
         await loadIncidents();
+        await loadRequests();
+        populateRequestSelectors();
       } catch (error) {
         toast(error?.message || "No se pudo cargar el proyecto seleccionado.");
       }
@@ -1377,6 +1486,772 @@
       } catch (error) {
         toast(adminErrorMessage(error, "No se pudo cambiar el estado."));
       }
+    }
+
+    const SCHEDULE_DAYS = [
+      { dow: 1, label: "Lunes" },
+      { dow: 2, label: "Martes" },
+      { dow: 3, label: "Miércoles" },
+      { dow: 4, label: "Jueves" },
+      { dow: 5, label: "Viernes" },
+      { dow: 6, label: "Sábado" },
+      { dow: 0, label: "Domingo" }
+    ];
+
+    function computeExpectedHours(start, end, breakStart, breakEnd) {
+      if (!start || !end) return null;
+      const toMin = (value) => {
+        const [h, m] = value.split(":").map(Number);
+        return (h * 60) + m;
+      };
+      let worked = toMin(end) - toMin(start);
+      if (worked < 0) worked += 24 * 60;
+      if (breakStart && breakEnd) {
+        let rest = toMin(breakEnd) - toMin(breakStart);
+        if (rest < 0) rest += 24 * 60;
+        worked -= rest;
+      }
+      return Math.max(0, Math.round((worked / 60) * 100) / 100);
+    }
+
+    function populateScheduleEmployeeSelect() {
+      const select = $("scheduleEmployeeSelect");
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = `<option value="">Seleccione funcionario</option>` + adminEmployees
+        .filter(employee => employee.status === "activo")
+        .map(employee => `<option value="${employee.id}">${escapeHtml(employee.full_name || employee.cedula || "Funcionario")}</option>`)
+        .join("");
+      if (current && adminEmployees.some(employee => employee.id === current)) {
+        select.value = current;
+      } else {
+        adminSchedules = {};
+      }
+      renderScheduleEditor();
+    }
+
+    async function loadEmployeeSchedules() {
+      adminSchedules = {};
+      const employeeId = $("scheduleEmployeeSelect")?.value;
+      if (!supabaseClient || !adminAuthorized || !employeeId) {
+        renderScheduleEditor();
+        return;
+      }
+      try {
+        const { data, error } = await supabaseClient
+          .from("schedules")
+          .select("day_of_week, start_time, end_time, break_start_time, break_end_time, is_day_off, expected_hours")
+          .eq("employee_id", employeeId)
+          .eq("effective_from", "2000-01-01");
+        if (error) throw error;
+        (data || []).forEach(row => { adminSchedules[row.day_of_week] = row; });
+        renderScheduleEditor();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo cargar el horario."));
+      }
+    }
+
+    function renderScheduleEditor() {
+      const table = $("scheduleTable");
+      if (!table) return;
+      const employeeId = $("scheduleEmployeeSelect")?.value;
+      if (!employeeId) {
+        table.innerHTML = `<tr><td colspan="7"><div class="empty">Seleccione un funcionario para definir su horario.</div></td></tr>`;
+        return;
+      }
+      table.innerHTML = SCHEDULE_DAYS.map(day => {
+        const schedule = adminSchedules[day.dow] || {};
+        const off = Boolean(schedule.is_day_off);
+        const time = (value) => value ? value.slice(0, 5) : "";
+        const hoursLabel = off ? "Libre" : (schedule.expected_hours != null ? `${schedule.expected_hours} h` : "—");
+        return `
+          <tr data-dow="${day.dow}" class="${off ? "alert-warn" : ""}">
+            <td><b>${day.label}</b></td>
+            <td><input type="checkbox" class="sch-off" ${off ? "checked" : ""} style="width:auto;min-height:auto"></td>
+            <td><input type="time" class="sch-start" value="${time(schedule.start_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-end" value="${time(schedule.end_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-bstart" value="${time(schedule.break_start_time)}" ${off ? "disabled" : ""}></td>
+            <td><input type="time" class="sch-bend" value="${time(schedule.break_end_time)}" ${off ? "disabled" : ""}></td>
+            <td><span class="sch-hours subtle">${hoursLabel}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function onScheduleTableInput(event) {
+      const row = event.target.closest("tr[data-dow]");
+      if (!row) return;
+      const off = row.querySelector(".sch-off").checked;
+      row.classList.toggle("alert-warn", off);
+      ["sch-start", "sch-end", "sch-bstart", "sch-bend"].forEach(cls => {
+        const input = row.querySelector(`.${cls}`);
+        if (input) input.disabled = off;
+      });
+      const hoursEl = row.querySelector(".sch-hours");
+      if (off) { hoursEl.textContent = "Libre"; return; }
+      const hours = computeExpectedHours(
+        row.querySelector(".sch-start").value,
+        row.querySelector(".sch-end").value,
+        row.querySelector(".sch-bstart").value,
+        row.querySelector(".sch-bend").value
+      );
+      hoursEl.textContent = hours != null ? `${hours} h` : "—";
+    }
+
+    async function saveSchedule() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) {
+        toast("Ingrese con Supabase antes de guardar horarios.");
+        return;
+      }
+      const employeeId = $("scheduleEmployeeSelect").value;
+      if (!employeeId) {
+        toast("Seleccione un funcionario.");
+        return;
+      }
+      const rows = Array.from(document.querySelectorAll("#scheduleTable tr[data-dow]"));
+      const payload = rows.map(row => {
+        const off = row.querySelector(".sch-off").checked;
+        const start = row.querySelector(".sch-start").value || null;
+        const end = row.querySelector(".sch-end").value || null;
+        const breakStart = row.querySelector(".sch-bstart").value || null;
+        const breakEnd = row.querySelector(".sch-bend").value || null;
+        return {
+          employee_id: employeeId,
+          day_of_week: Number(row.dataset.dow),
+          effective_from: "2000-01-01",
+          effective_to: null,
+          is_day_off: off,
+          start_time: off ? null : start,
+          end_time: off ? null : end,
+          break_start_time: off ? null : breakStart,
+          break_end_time: off ? null : breakEnd,
+          expected_hours: off ? 0 : (computeExpectedHours(start, end, breakStart, breakEnd) || 0),
+          updated_at: new Date().toISOString()
+        };
+      });
+      const invalid = payload.find(item => !item.is_day_off && (!item.start_time || !item.end_time));
+      if (invalid) {
+        toast("Los días laborables requieren hora de entrada y salida.");
+        return;
+      }
+      $("saveScheduleBtn").disabled = true;
+      try {
+        const { error } = await supabaseClient
+          .from("schedules")
+          .upsert(payload, { onConflict: "employee_id,day_of_week,effective_from" });
+        if (error) throw error;
+        toast("Horario guardado.");
+        await loadEmployeeSchedules();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo guardar el horario."));
+      } finally {
+        $("saveScheduleBtn").disabled = false;
+      }
+    }
+
+    function normalizeWeekday(value) {
+      const s = String(value || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (/^[0-6]$/.test(s)) return Number(s);
+      return { domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6 }[s] ?? null;
+    }
+
+    function normalizeImportTime(value) {
+      if (value == null || value === "") return null;
+      if (typeof value === "number") {
+        const totalMin = Math.round(value * 24 * 60);
+        return `${String(Math.floor(totalMin / 60)).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`;
+      }
+      const match = String(value).trim().match(/^(\d{1,2}):(\d{2})/);
+      return match ? `${match[1].padStart(2, "0")}:${match[2]}` : null;
+    }
+
+    function normalizeImportDate(value) {
+      if (value == null || value === "") return null;
+      if (value instanceof Date) return value.toISOString().slice(0, 10);
+      if (typeof value === "number") return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);
+      const s = String(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
+    }
+
+    function normalizeImportBool(value) {
+      return ["si", "sí", "s", "true", "1", "x"].includes(String(value ?? "").trim().toLowerCase());
+    }
+
+    async function handleScheduleImportFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel. Revise la conexión."); return; }
+      if (!adminProjectId) { toast("Seleccione el proyecto destino antes de importar."); return; }
+      try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheet = workbook.Sheets["horarios"] || workbook.Sheets[workbook.SheetNames[0]];
+        const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: null });
+        parseScheduleImport(matrix);
+      } catch (error) {
+        toast("No se pudo leer el archivo: " + (error?.message || ""));
+      }
+    }
+
+    function parseScheduleImport(matrix) {
+      const headerRowIdx = matrix.findIndex(row => Array.isArray(row) && row.some(cell => String(cell || "").trim().toLowerCase() === "employee_code"));
+      if (headerRowIdx === -1) { toast("No encontré la cabecera (employee_code). Revise la plantilla."); return; }
+      const headers = matrix[headerRowIdx].map(cell => String(cell || "").trim().toLowerCase());
+      const col = (name) => headers.indexOf(name);
+      const results = [];
+      matrix.slice(headerRowIdx + 1).forEach(row => {
+        if (!Array.isArray(row) || row.every(cell => cell == null || cell === "")) return;
+        const get = (name) => { const idx = col(name); return idx >= 0 ? row[idx] : null; };
+        const cedula = String(get("cedula") || "").trim();
+        const empCode = String(get("employee_code") || "").trim();
+        if (!cedula && !empCode) return;
+        const weekdayRaw = String(get("weekday") || "").trim();
+        const dow = normalizeWeekday(weekdayRaw);
+        const isOff = normalizeImportBool(get("is_day_off"));
+        const start = normalizeImportTime(get("start_time"));
+        const end = normalizeImportTime(get("end_time"));
+        const breakStart = normalizeImportTime(get("break_start_time"));
+        const breakEnd = normalizeImportTime(get("break_end_time"));
+        const effFrom = normalizeImportDate(get("effective_from")) || "2000-01-01";
+        const effTo = normalizeImportDate(get("effective_to"));
+        const expRaw = get("expected_hours");
+        const employee = adminEmployees.find(item => (cedula && item.cedula === cedula) || (empCode && item.employee_code === empCode));
+        const errors = [];
+        if (!employee) errors.push("funcionario no está en este proyecto");
+        if (dow == null) errors.push("día inválido");
+        if (!isOff && (!start || !end)) errors.push("falta entrada/salida");
+        const expected = isOff ? 0 : (expRaw != null && expRaw !== "" && !isNaN(Number(expRaw)) ? Number(expRaw) : (computeExpectedHours(start, end, breakStart, breakEnd) ?? 0));
+        results.push({
+          display: { who: cedula || empCode || "-", weekday: weekdayRaw || "-", effFrom, effTo },
+          valid: errors.length === 0,
+          errors,
+          record: (employee && dow != null) ? {
+            employee_id: employee.id,
+            day_of_week: dow,
+            effective_from: effFrom,
+            effective_to: effTo,
+            is_day_off: isOff,
+            start_time: isOff ? null : start,
+            end_time: isOff ? null : end,
+            break_start_time: isOff ? null : breakStart,
+            break_end_time: isOff ? null : breakEnd,
+            expected_hours: expected,
+            notes: (get("notes") != null ? String(get("notes")).trim() : "") || null,
+            updated_at: new Date().toISOString()
+          } : null
+        });
+      });
+      scheduleImportRows = results;
+      renderScheduleImportPreview();
+    }
+
+    function renderScheduleImportPreview() {
+      const wrap = $("scheduleImportPreview");
+      if (!wrap) return;
+      if (!scheduleImportRows.length) {
+        wrap.innerHTML = `<div class="empty">Seleccione un archivo para previsualizar.</div>`;
+        if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = true;
+        return;
+      }
+      const ok = scheduleImportRows.filter(item => item.valid).length;
+      const bad = scheduleImportRows.length - ok;
+      const rowsHtml = scheduleImportRows.map(item => `
+        <tr class="${item.valid ? "" : "alert-warn"}">
+          <td>${escapeHtml(item.display.who)}</td>
+          <td>${escapeHtml(item.display.weekday)}</td>
+          <td>${escapeHtml(item.display.effFrom)}${item.display.effTo ? " → " + escapeHtml(item.display.effTo) : ""}</td>
+          <td>${item.valid ? `<span class="badge valid">OK</span>` : `<span class="badge neutral">${escapeHtml(item.errors.join(", "))}</span>`}</td>
+        </tr>
+      `).join("");
+      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Válidas: <b>${ok}</b> · Con error: <b>${bad}</b>. Solo se importarán las válidas.</div>
+        <div class="table-wrap"><table><thead><tr><th>Funcionario</th><th>Día</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+      if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = ok === 0;
+    }
+
+    async function runScheduleImport() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de importar."); return; }
+      const records = scheduleImportRows.filter(item => item.valid).map(item => item.record);
+      if (!records.length) { toast("No hay filas válidas para importar."); return; }
+      $("runScheduleImportBtn").disabled = true;
+      try {
+        for (let i = 0; i < records.length; i += 200) {
+          const batch = records.slice(i, i + 200);
+          const { error } = await supabaseClient
+            .from("schedules")
+            .upsert(batch, { onConflict: "employee_id,day_of_week,effective_from" });
+          if (error) throw error;
+        }
+        toast(`Importados ${records.length} horarios.`);
+        scheduleImportRows = [];
+        if ($("scheduleImportFile")) $("scheduleImportFile").value = "";
+        renderScheduleImportPreview();
+        await loadEmployeeSchedules();
+        await loadAllSchedules();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo importar."));
+      } finally {
+        if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = false;
+      }
+    }
+
+    const REQUEST_TYPES = {
+      permiso_horas: "Permiso por horas",
+      permiso_dia: "Permiso por día",
+      ausencia_justificada: "Ausencia justificada",
+      vacaciones: "Vacaciones",
+      incapacidad: "Incapacidad",
+      cobertura: "Cobertura en otro local",
+      cambio_horario: "Cambio temporal de horario"
+    };
+
+    function requestTypeLabel(type) {
+      return REQUEST_TYPES[type] || type || "Solicitud";
+    }
+
+    function approvedDayStatus(req) {
+      return {
+        vacaciones: "Vacaciones",
+        incapacidad: "Incapacidad",
+        permiso_dia: "Permiso aprobado",
+        ausencia_justificada: "Ausencia justificada",
+        cobertura: "Cobertura"
+      }[req.request_type] || "Aprobado";
+    }
+
+    function approvedDayComment(req) {
+      switch (req.request_type) {
+        case "vacaciones": return "Funcionario en vacaciones aprobadas.";
+        case "incapacidad": return "Funcionario con incapacidad aprobada.";
+        case "permiso_dia": return "Ausencia con permiso aprobado.";
+        case "ausencia_justificada": return "Ausencia justificada aprobada.";
+        case "cobertura": return `Funcionario cubre temporalmente ${req.cover_site_name || "otro local"}.`;
+        default: return "";
+      }
+    }
+
+    function requestCoversDate(req, dateKey) {
+      const start = localDateKey(req.start_datetime);
+      const end = localDateKey(req.end_datetime);
+      return start <= dateKey && dateKey <= end;
+    }
+
+    function findApprovedRequests(employeeId, dateKey) {
+      return adminRequests.filter(req => req.status === "aprobado" && req.employee_id === employeeId && requestCoversDate(req, dateKey));
+    }
+
+    function populateRequestSelectors() {
+      const empSelect = $("requestEmployeeSelect");
+      if (empSelect) {
+        const current = empSelect.value;
+        empSelect.innerHTML = `<option value="">Seleccione funcionario</option>` + adminEmployees
+          .filter(employee => employee.status === "activo")
+          .map(employee => `<option value="${employee.id}">${escapeHtml(employee.full_name || employee.cedula || "Funcionario")}</option>`)
+          .join("");
+        if (current && adminEmployees.some(e => e.id === current)) empSelect.value = current;
+      }
+      const siteSelect = $("requestCoverSite");
+      if (siteSelect) {
+        siteSelect.innerHTML = `<option value="">Seleccione local</option>` + sites
+          .filter(site => site.activo)
+          .map(site => `<option value="${site.site_id}">${escapeHtml(site.site_name || "")}</option>`)
+          .join("");
+      }
+    }
+
+    async function loadRequests() {
+      adminRequests = [];
+      if (!supabaseClient || !adminAuthorized || !adminProjectId) { renderRequests(); return; }
+      try {
+        const { data, error } = await supabaseClient
+          .from("requests")
+          .select("*, employees(full_name, cedula), cover:cover_site_id(site_name)")
+          .eq("project_id", adminProjectId)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        adminRequests = (data || []).map(req => ({
+          ...req,
+          employee_name: req.employees?.full_name || req.employees?.cedula || "Funcionario",
+          cover_site_name: req.cover?.site_name || ""
+        }));
+        renderRequests();
+      } catch (error) {
+        const table = $("requestsTable");
+        if (table) table.innerHTML = `<tr><td colspan="7"><div class="empty">${escapeHtml(adminErrorMessage(error, "No se pudieron cargar las solicitudes."))}</div></td></tr>`;
+      }
+    }
+
+    function renderRequests() {
+      const table = $("requestsTable");
+      if (!table) return;
+      const statusBadgeReq = (status) => {
+        if (status === "aprobado") return `<span class="badge valid">Aprobado</span>`;
+        if (status === "rechazado") return `<span class="badge out">Rechazado</span>`;
+        return `<span class="badge neutral">Pendiente</span>`;
+      };
+      table.innerHTML = adminRequests.map(req => {
+        const action = req.status === "pendiente"
+          ? `<button class="btn small blue" data-approve-request="${req.id}">Aprobar</button>
+             <button class="btn small danger" data-reject-request="${req.id}" style="margin-top:6px">Rechazar</button>`
+          : (req.status === "rechazado" && req.rejection_reason
+              ? `<span class="subtle">${escapeHtml(req.rejection_reason)}</span>`
+              : `<span class="subtle">${req.approved_at ? fmtDateTime.format(new Date(req.approved_at)) : ""}</span>`);
+        return `
+          <tr class="${req.status === "pendiente" ? "alert-warn" : ""}">
+            <td><b>${escapeHtml(req.employee_name)}</b></td>
+            <td>${escapeHtml(requestTypeLabel(req.request_type))}${req.request_type === "cobertura" && req.cover_site_name ? `<br><span class="subtle">→ ${escapeHtml(req.cover_site_name)}</span>` : ""}</td>
+            <td>${req.start_datetime ? fmtDateTime.format(new Date(req.start_datetime)) : "-"}</td>
+            <td>${req.end_datetime ? fmtDateTime.format(new Date(req.end_datetime)) : "-"}</td>
+            <td><span class="subtle">${escapeHtml(req.reason || "")}</span></td>
+            <td>${statusBadgeReq(req.status)}</td>
+            <td>${action}</td>
+          </tr>`;
+      }).join("") || `<tr><td colspan="7"><div class="empty">No hay solicitudes en este proyecto.</div></td></tr>`;
+    }
+
+    async function saveRequest() {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de crear solicitudes."); return; }
+      if (!adminProjectId) { toast("Seleccione un proyecto."); return; }
+      const employeeId = $("requestEmployeeSelect").value;
+      const type = $("requestType").value;
+      const startRaw = $("requestStart").value;
+      const endRaw = $("requestEnd").value;
+      if (!employeeId || !type || !startRaw || !endRaw) { toast("Complete funcionario, tipo, desde y hasta."); return; }
+      if (new Date(startRaw) > new Date(endRaw)) { toast("La fecha 'Desde' no puede ser mayor que 'Hasta'."); return; }
+      $("saveRequestBtn").disabled = true;
+      try {
+        const { error } = await supabaseClient.from("requests").insert({
+          employee_id: employeeId,
+          project_id: adminProjectId,
+          request_type: type,
+          start_datetime: new Date(startRaw).toISOString(),
+          end_datetime: new Date(endRaw).toISOString(),
+          reason: $("requestReason").value.trim() || null,
+          comments: $("requestComments").value.trim() || null,
+          cover_site_id: type === "cobertura" ? ($("requestCoverSite").value || null) : null,
+          attachment_url: $("requestAttachment").value.trim() || null,
+          status: "pendiente"
+        });
+        if (error) throw error;
+        toast("Solicitud creada (pendiente de aprobación).");
+        ["requestReason", "requestComments", "requestAttachment", "requestStart", "requestEnd"].forEach(id => { if ($(id)) $(id).value = ""; });
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo crear la solicitud."));
+      } finally {
+        $("saveRequestBtn").disabled = false;
+      }
+    }
+
+    async function approveRequest(id) {
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Sin permisos para aprobar."); return; }
+      try {
+        const { error } = await supabaseClient.from("requests").update({
+          status: "aprobado",
+          approved_by: adminProfile?.id || null,
+          approved_at: new Date().toISOString(),
+          rejection_reason: null,
+          updated_at: new Date().toISOString()
+        }).eq("id", id);
+        if (error) throw error;
+        toast("Solicitud aprobada. El cálculo ya la considera.");
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo aprobar."));
+      }
+    }
+
+    async function rejectRequest(id) {
+      const reason = window.prompt("Motivo del rechazo (opcional):", "");
+      if (reason === null) return;
+      await ensureAdminSession();
+      if (!supabaseClient || !adminAuthorized) { toast("Sin permisos para rechazar."); return; }
+      try {
+        const { error } = await supabaseClient.from("requests").update({
+          status: "rechazado",
+          approved_by: adminProfile?.id || null,
+          approved_at: new Date().toISOString(),
+          rejection_reason: reason.trim() || null,
+          updated_at: new Date().toISOString()
+        }).eq("id", id);
+        if (error) throw error;
+        toast("Solicitud rechazada.");
+        await loadRequests();
+      } catch (error) {
+        toast(adminErrorMessage(error, "No se pudo rechazar."));
+      }
+    }
+
+    async function loadAllSchedules() {
+      adminAllSchedules = [];
+      if (!supabaseClient || !adminAuthorized || !adminEmployees.length) return;
+      try {
+        const ids = adminEmployees.map(employee => employee.id);
+        const { data, error } = await supabaseClient
+          .from("schedules")
+          .select("employee_id, day_of_week, effective_from, effective_to, start_time, end_time, break_start_time, break_end_time, is_day_off, expected_hours")
+          .in("employee_id", ids);
+        if (error) throw error;
+        adminAllSchedules = data || [];
+      } catch (error) {
+        adminAllSchedules = [];
+      }
+    }
+
+    function resolveSchedule(employeeId, dow, dateKey) {
+      const candidates = adminAllSchedules.filter(item => item.employee_id === employeeId && item.day_of_week === dow);
+      if (!candidates.length) return null;
+      const covering = candidates.filter(item => item.effective_from !== "2000-01-01"
+        && item.effective_from <= dateKey
+        && (!item.effective_to || item.effective_to >= dateKey));
+      if (covering.length) {
+        covering.sort((a, b) => (a.effective_from < b.effective_from ? 1 : -1));
+        return covering[0];
+      }
+      return candidates.find(item => item.effective_from === "2000-01-01") || null;
+    }
+
+    function minutesFromClock(value) {
+      if (!value) return null;
+      const [h, m] = String(value).slice(0, 5).split(":").map(Number);
+      return (h * 60) + m;
+    }
+
+    function minutesFromTimestamp(ts) {
+      const d = new Date(ts);
+      return (d.getHours() * 60) + d.getMinutes();
+    }
+
+    function clockFromTimestamp(ts) {
+      const d = new Date(ts);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function fmtMinutes(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+
+    function enumerateDays(fromKey, toKey) {
+      const out = [];
+      const cursor = new Date(fromKey + "T12:00:00");
+      const end = new Date(toKey + "T12:00:00");
+      let guard = 0;
+      while (cursor <= end && guard < 370) {
+        out.push(localDateKey(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+        guard++;
+      }
+      return out;
+    }
+
+    function computeAttendanceRows(fromKey, toKey) {
+      const byKey = {};
+      logs.forEach(log => {
+        if (!log.timestamp || !log.employee_code) return;
+        const key = `${log.employee_code}|${localDateKey(log.timestamp)}`;
+        (byKey[key] = byKey[key] || []).push(log);
+      });
+      const days = enumerateDays(fromKey, toKey);
+      const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const rows = [];
+      adminEmployees.filter(employee => employee.status === "activo").forEach(employee => {
+        days.forEach(dateKey => {
+          const dow = new Date(dateKey + "T12:00:00").getDay();
+          const schedule = resolveSchedule(employee.id, dow, dateKey);
+          const marks = byKey[`${employee.cedula || ""}|${dateKey}`] || [];
+          const entradas = marks.filter(m => m.check_type === "entrada").sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          const salidas = marks.filter(m => m.check_type === "salida").sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          const entrada = entradas[0] || null;
+          const salida = salidas[salidas.length - 1] || null;
+          const offSite = marks.some(m => m.gps_status && m.gps_status !== "valido");
+
+          const approved = findApprovedRequests(employee.id, dateKey);
+          const fullDayReq = approved.find(r => ["vacaciones", "incapacidad", "permiso_dia", "ausencia_justificada", "cobertura"].includes(r.request_type));
+          const permisoHoras = approved.find(r => r.request_type === "permiso_horas");
+          const cambioHorario = approved.find(r => r.request_type === "cambio_horario");
+
+          if (!schedule && !marks.length && !approved.length) return;
+          if (schedule && schedule.is_day_off && !marks.length && !approved.length) return;
+
+          const row = {
+            employee: employee.full_name || employee.cedula,
+            cedula: employee.cedula,
+            dateKey,
+            dayLabel: `${dayNames[dow]} ${dateKey}`,
+            scheduleLabel: "—",
+            entradaLabel: entrada ? clockFromTimestamp(entrada.timestamp) : "—",
+            salidaLabel: salida ? clockFromTimestamp(salida.timestamp) : "—",
+            tardiaMin: 0,
+            earlyMin: 0,
+            workedHours: null,
+            expectedHours: schedule ? Number(schedule.expected_hours || 0) : null,
+            status: "OK",
+            offSite,
+            comment: ""
+          };
+          const parts = [];
+
+          if (fullDayReq) {
+            if (schedule && !schedule.is_day_off) {
+              row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}–${(schedule.end_time || "").slice(0, 5)}`;
+            } else if (schedule && schedule.is_day_off) {
+              row.scheduleLabel = "Día libre";
+            }
+            row.status = approvedDayStatus(fullDayReq);
+            parts.push(approvedDayComment(fullDayReq));
+            if (offSite) parts.push("Marca realizada fuera del radio permitido del local asignado.");
+            row.comment = parts.join(" ");
+            rows.push(row);
+            return;
+          }
+
+          if (!schedule) {
+            row.scheduleLabel = "Sin horario";
+            row.status = "Sin horario";
+            parts.push("Funcionario sin horario definido para este día.");
+          } else if (schedule.is_day_off) {
+            row.scheduleLabel = "Día libre";
+            row.status = "Día libre (con marca)";
+            parts.push("Registra marca en día libre programado.");
+          } else {
+            const expStart = minutesFromClock(schedule.start_time);
+            const expEnd = minutesFromClock(schedule.end_time);
+            row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}–${(schedule.end_time || "").slice(0, 5)}`;
+
+            if (!marks.length) {
+              row.status = "Ausencia";
+              parts.push(`Ausencia: no registra marcas (horario esperado ${(schedule.start_time || "").slice(0, 5)} a ${(schedule.end_time || "").slice(0, 5)}).`);
+            } else {
+              if (entrada && expStart != null) {
+                row.tardiaMin = Math.max(0, minutesFromTimestamp(entrada.timestamp) - expStart);
+              }
+              if (salida && expEnd != null) {
+                row.earlyMin = Math.max(0, expEnd - minutesFromTimestamp(salida.timestamp));
+              }
+              if (entrada && salida) {
+                let worked = minutesFromTimestamp(salida.timestamp) - minutesFromTimestamp(entrada.timestamp);
+                if (worked < 0) worked += 24 * 60;
+                const bStart = minutesFromClock(schedule.break_start_time);
+                const bEnd = minutesFromClock(schedule.break_end_time);
+                if (bStart != null && bEnd != null) {
+                  let brk = bEnd - bStart;
+                  if (brk < 0) brk += 24 * 60;
+                  worked -= brk;
+                }
+                row.workedHours = Math.max(0, Math.round((worked / 60) * 100) / 100);
+              }
+
+              if (permisoHoras) {
+                row.tardiaMin = 0;
+                row.earlyMin = 0;
+              }
+
+              const flags = [];
+              if (!entrada && salida) { flags.push("Omisión entrada"); parts.push("No registra marca de entrada."); }
+              if (entrada && !salida) { flags.push("Omisión salida"); parts.push("No registra marca de salida."); }
+              if (row.tardiaMin > 0) {
+                flags.push("Tardía");
+                parts.push(`Registra entrada a las ${clockFromTimestamp(entrada.timestamp)}, presentando tardía de ${row.tardiaMin} minutos.`);
+              } else if (entrada) {
+                parts.push(`Entrada puntual a las ${clockFromTimestamp(entrada.timestamp)}.`);
+              }
+              if (row.earlyMin > 0) {
+                flags.push("Salida anticipada");
+                parts.push(`Salida anticipada a las ${clockFromTimestamp(salida.timestamp)}, ${row.earlyMin} minutos antes del horario.`);
+              }
+              if (row.workedHours != null && row.expectedHours) {
+                const diff = Math.round((row.workedHours - row.expectedHours) * 100) / 100;
+                if (Math.abs(diff) >= 0.25) {
+                  parts.push(`Trabajó ${row.workedHours}h de ${row.expectedHours}h esperadas (diferencia ${diff > 0 ? "+" : ""}${diff}h).`);
+                }
+              }
+              if (permisoHoras) parts.push("Permiso por horas aprobado.");
+              if (cambioHorario) parts.push("Cambio temporal de horario aprobado.");
+              row.status = flags.length ? flags.join(" · ") : (permisoHoras ? "Permiso por horas" : "OK");
+            }
+          }
+
+          if (offSite) parts.push("Marca realizada fuera del radio permitido del local asignado.");
+          row.comment = parts.join(" ");
+          rows.push(row);
+        });
+      });
+      return rows;
+    }
+
+    function statusBadge(status) {
+      if (status === "OK") return `<span class="badge valid">OK</span>`;
+      if (status === "Ausencia") return `<span class="badge out">Ausencia</span>`;
+      if (status.startsWith("Día libre") || status === "Sin horario") return `<span class="badge neutral">${escapeHtml(status)}</span>`;
+      return `<span class="badge warn">${escapeHtml(status)}</span>`;
+    }
+
+    function runAttendanceCalc() {
+      const fromKey = $("calcDateFrom").value || todayISO();
+      const toKey = $("calcDateTo").value || fromKey;
+      if (fromKey > toKey) { toast("La fecha 'Desde' no puede ser mayor que 'Hasta'."); return; }
+      if (!adminProjectId) { toast("Seleccione un proyecto."); return; }
+      if (!adminEmployees.length) { toast("No hay funcionarios cargados en este proyecto."); return; }
+
+      lastCalcRows = computeAttendanceRows(fromKey, toKey);
+      const result = $("attendanceCalcResult");
+      const summary = $("attendanceCalcSummary");
+
+      if (!lastCalcRows.length) {
+        result.innerHTML = `<div class="empty">Sin marcas ni novedades en el rango seleccionado.</div>`;
+        summary.innerHTML = "";
+        $("copyCalcCommentsBtn").style.display = "none";
+        return;
+      }
+
+      const tardias = lastCalcRows.filter(r => r.tardiaMin > 0).length;
+      const ausencias = lastCalcRows.filter(r => r.status === "Ausencia").length;
+      const tempranas = lastCalcRows.filter(r => r.earlyMin > 0).length;
+      const fueraSitio = lastCalcRows.filter(r => r.offSite).length;
+      const totalHoras = Math.round(lastCalcRows.reduce((sum, r) => sum + (r.workedHours || 0), 0) * 100) / 100;
+
+      summary.innerHTML = `<div class="helper">Tardías: <b>${tardias}</b> · Ausencias: <b>${ausencias}</b> · Salidas anticipadas: <b>${tempranas}</b> · Marcas fuera de sitio: <b>${fueraSitio}</b> · Horas trabajadas: <b>${totalHoras}</b></div>`;
+
+      result.innerHTML = `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>Funcionario</th><th>Día</th><th>Horario</th><th>Entrada</th><th>Salida</th>
+          <th>Tardía</th><th>Salida ant.</th><th>Horas (trab/esp)</th><th>Estado</th><th>Comentario</th>
+        </tr></thead>
+        <tbody>${lastCalcRows.map(r => `
+          <tr class="${r.status === "Ausencia" ? "alert-warn" : ""}">
+            <td><b>${escapeHtml(r.employee)}</b></td>
+            <td>${escapeHtml(r.dayLabel)}</td>
+            <td>${escapeHtml(r.scheduleLabel)}</td>
+            <td>${escapeHtml(r.entradaLabel)}</td>
+            <td>${escapeHtml(r.salidaLabel)}</td>
+            <td>${r.tardiaMin > 0 ? escapeHtml(fmtMinutes(r.tardiaMin)) : "—"}</td>
+            <td>${r.earlyMin > 0 ? escapeHtml(fmtMinutes(r.earlyMin)) : "—"}</td>
+            <td>${r.workedHours != null ? r.workedHours : "—"}${r.expectedHours ? " / " + r.expectedHours : ""}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td><span class="subtle">${escapeHtml(r.comment)}</span></td>
+          </tr>`).join("")}</tbody>
+      </table></div>`;
+
+      $("copyCalcCommentsBtn").style.display = lastCalcRows.some(r => r.comment) ? "" : "none";
+    }
+
+    function copyCalcComments() {
+      const text = lastCalcRows
+        .filter(r => r.comment)
+        .map(r => `${r.employee} · ${r.dayLabel}: ${r.comment}`)
+        .join("\n");
+      if (!text) { toast("No hay comentarios para copiar."); return; }
+      navigator.clipboard?.writeText(text).then(
+        () => toast("Comentarios copiados."),
+        () => toast("No se pudo copiar al portapapeles.")
+      );
     }
 
     async function saveProjectAdmin() {
@@ -2152,6 +3027,24 @@
       $("topLogoutBtn").addEventListener("click", adminLogout);
       $("saveProjectBtn").addEventListener("click", saveProjectAdmin);
       $("saveEmployeeAdminBtn").addEventListener("click", saveEmployeeAdmin);
+      $("saveScheduleBtn").addEventListener("click", saveSchedule);
+      $("scheduleEmployeeSelect").addEventListener("change", loadEmployeeSchedules);
+      $("scheduleTable").addEventListener("input", onScheduleTableInput);
+      $("scheduleTable").addEventListener("change", onScheduleTableInput);
+      $("scheduleImportFile").addEventListener("change", handleScheduleImportFile);
+      $("runScheduleImportBtn").addEventListener("click", runScheduleImport);
+      $("runAttendanceCalcBtn").addEventListener("click", runAttendanceCalc);
+      $("copyCalcCommentsBtn").addEventListener("click", copyCalcComments);
+      $("saveRequestBtn").addEventListener("click", saveRequest);
+      $("requestType").addEventListener("change", () => {
+        $("requestCoverWrap").style.display = $("requestType").value === "cobertura" ? "" : "none";
+      });
+      $("requestsTable").addEventListener("click", (event) => {
+        const approveId = event.target.dataset.approveRequest;
+        const rejectId = event.target.dataset.rejectRequest;
+        if (approveId) approveRequest(approveId);
+        if (rejectId) rejectRequest(rejectId);
+      });
       $("adminProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
       $("siteProjectSelect").addEventListener("change", (event) => selectAdminProject(event.target.value));
       $("refreshIncidentsBtn").addEventListener("click", loadIncidents);
@@ -2191,6 +3084,9 @@
     bindEvents();
     startClock();
     renderAll();
+    renderScheduleEditor();
+    if ($("calcDateFrom")) $("calcDateFrom").value = todayISO();
+    if ($("calcDateTo")) $("calcDateTo").value = todayISO();
     loadSupabaseData();
     refreshAdminSession();
   </script>
