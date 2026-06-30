@@ -529,8 +529,8 @@
                   <datalist id="siteOptions"></datalist>
                 </label>
                 <div id="selectedSiteInfo" class="status-box">
-                  <div class="status-title">Detección GPS obligatoria</div>
-                  <div class="subtle">Al marcar entrada o salida, el sistema detectará el site activo más cercano y validará el radio permitido.</div>
+                  <div class="status-title">Detección GPS opcional</div>
+                  <div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicación, podrá agregarla al registro.</div>
                 </div>
                 <div id="gpsPermissionInfo" class="status-box">
                   <div class="status-title">Permiso de ubicacion requerido</div>
@@ -545,7 +545,7 @@
                   <button id="checkInBtn" class="btn blue">Registrar entrada</button>
                   <button id="checkOutBtn" class="btn orange">Registrar salida</button>
                 </div>
-                <button id="detectSiteBtn" class="btn ghost">Probar detección GPS</button>
+                <button id="detectSiteBtn" class="btn ghost">Probar detección GPS / agregar ubicación</button>
               </div>
             </div>
           </section>
@@ -1027,6 +1027,7 @@
     let adminSession = null;
     let adminProfile = null;
     let adminAuthorized = false;
+    let syncInProgress = false;
     let officialTemplateWorkbook = null;
     const ALL_PROJECTS_VALUE = "__ALL_PROJECTS__";
     const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
@@ -1357,6 +1358,7 @@
       }
       supabaseOnline = true;
       setSupabaseStatus("online", "Supabase conectado. Ingrese la cédula para cargar funcionario y sites asignados.");
+      syncPendingLogs();
     }
 
     async function loadEmployeeByCedula() {
@@ -1380,6 +1382,7 @@
         currentEmployee = employee;
         $("employeeName").value = employee.full_name || "";
         localStorage.setItem(STORAGE.employee, JSON.stringify({
+          employee_id: employee.employee_id || "",
           employee_name: employee.full_name || "",
           employee_code: cedula
         }));
@@ -1398,11 +1401,45 @@
       }
     }
 
+    function offlineEmployeeFromLocal(cedula) {
+      const saved = JSON.parse(localStorage.getItem(STORAGE.employee) || "{}");
+      if (saved.employee_code && saved.employee_code !== cedula) return null;
+      const name = saved.employee_name || $("employeeName").value.trim() || `Funcionario ${cedula}`;
+      const employee = {
+        employee_id: saved.employee_id || null,
+        cedula,
+        full_name: name,
+        offline_only: !saved.employee_id
+      };
+      currentEmployee = employee;
+      $("employeeName").value = name;
+      localStorage.setItem(STORAGE.employee, JSON.stringify({
+        employee_id: employee.employee_id || "",
+        employee_name: employee.full_name || "",
+        employee_code: cedula
+      }));
+      return employee;
+    }
+
+    async function resolveEmployeeForMark(cedula) {
+      if (currentEmployee?.cedula === cedula) return currentEmployee;
+      const remote = await loadEmployeeByCedula();
+      if (remote) return remote;
+      setSupabaseStatus("offline", "Sin conexión a Supabase. La marca se guardará localmente y quedará pendiente de sincronizar.");
+      return offlineEmployeeFromLocal(cedula);
+    }
+
     async function persistLogToSupabase(log) {
-      if (!supabaseOnline || !supabaseClient || !currentEmployee) return;
+      const employeeId = log.employee_id || currentEmployee?.employee_id;
+      if (!supabaseOnline || !supabaseClient || !employeeId) {
+        log.sync_status = "pendiente";
+        if (!employeeId) log.sync_note = "Sin employee_id local para sincronizar automaticamente.";
+        saveLogs();
+        return false;
+      }
       try {
         const { data, error } = await supabaseClient.rpc("submit_attendance_mark", {
-          p_employee_id: currentEmployee.employee_id,
+          p_employee_id: employeeId,
           p_detected_site_id: log.site_id === "SIN-SITIO" ? null : log.site_id,
           p_check_type: log.check_type,
           p_latitude: log.latitude,
@@ -1418,12 +1455,35 @@
           log.id = Array.isArray(data) ? data[0] : data;
           const local = logs.find(item => item.timestamp === log.timestamp && item.employee_code === log.employee_code && item.check_type === log.check_type);
           if (local) local.id = log.id;
-          saveLogs();
         }
+        log.sync_status = "sincronizado";
+        log.sync_note = "";
+        saveLogs();
         await sendAttendanceAlert(log);
+        return true;
       } catch (error) {
         supabaseOnline = false;
+        log.sync_status = "pendiente";
+        log.sync_note = error.message;
+        saveLogs();
         setSupabaseStatus("error", `Registro guardado localmente. Supabase respondió: ${error.message}`);
+        return false;
+      }
+    }
+
+    async function syncPendingLogs() {
+      if (syncInProgress || !supabaseClient || !navigator.onLine) return;
+      const pending = logs.filter(log => log.sync_status === "pendiente" && log.employee_id);
+      if (!pending.length) return;
+      syncInProgress = true;
+      supabaseOnline = true;
+      try {
+        for (const log of pending) {
+          await persistLogToSupabase(log);
+        }
+        renderAll();
+      } finally {
+        syncInProgress = false;
       }
     }
 
@@ -3498,10 +3558,19 @@
       const saved = JSON.parse(localStorage.getItem(STORAGE.employee) || "{}");
       $("employeeName").value = saved.employee_name || "";
       $("employeeCode").value = saved.employee_code || "";
+      if (saved.employee_code) {
+        currentEmployee = {
+          employee_id: saved.employee_id || null,
+          cedula: saved.employee_code,
+          full_name: saved.employee_name || `Funcionario ${saved.employee_code}`,
+          offline_only: !saved.employee_id
+        };
+      }
     }
 
     function saveEmployee() {
       localStorage.setItem(STORAGE.employee, JSON.stringify({
+        employee_id: currentEmployee?.employee_id || "",
         employee_name: $("employeeName").value.trim(),
         employee_code: $("employeeCode").value.trim()
       }));
@@ -3517,6 +3586,10 @@
       $("employeeName").value = "";
       $("siteSearch").value = "";
       $("notes").value = "";
+      const syncText = log.sync_status === "pendiente" ? `<div class="subtle">Pendiente de sincronizar con Supabase.</div>` : "";
+      const gpsAction = canAttachGps(log)
+        ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}" style="margin-top:10px">Agregar ubicación</button>`
+        : "";
       $("lastResult").innerHTML = `
         <span class="badge neutral">Pendiente</span>
         <div class="status-title">Aún no hay marca en esta sesión</div>
@@ -3558,7 +3631,7 @@
       const site = findSelectedSite();
       const el = $("selectedSiteInfo");
       if (!site) {
-        el.innerHTML = `<div class="status-title">Detección GPS obligatoria</div><div class="subtle">Al marcar entrada o salida, el sistema detectará el site activo más cercano y validará el radio permitido.</div>`;
+        el.innerHTML = `<div class="status-title">Detección GPS opcional</div><div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicación, podrá agregarla al registro.</div>`;
         return;
       }
       el.innerHTML = `
@@ -3658,7 +3731,7 @@
       if (!valid) return;
 
       setButtonsLoading(true);
-      const employee = currentEmployee?.cedula === valid.cedula ? currentEmployee : await loadEmployeeByCedula();
+      const employee = await resolveEmployeeForMark(valid.cedula);
       if (!employee) {
         setButtonsLoading(false);
         return;
@@ -3670,6 +3743,7 @@
       let siteForLog = unknownSite();
       const baseLog = {
         id: uid("log"),
+        employee_id: employee.employee_id || null,
         employee_name: employeeName,
         employee_code: employeeCode,
         site_id: siteForLog.site_id,
@@ -3684,17 +3758,14 @@
         distance_to_site_meters: null,
         gps_status: "error",
         device_info: getDeviceInfo(),
-        notes: $("notes").value.trim()
+        notes: $("notes").value.trim(),
+        sync_status: "pendiente",
+        sync_note: ""
       };
 
       try {
         const permissionState = await refreshGpsPermissionStatus();
         if (permissionState === "denied") {
-          const ok = confirm("La ubicacion GPS esta bloqueada para esta pagina. Para validar el local debe activarla en el navegador. ¿Desea registrar el intento como SIN GPS?");
-          if (!ok) {
-            toast("Active la ubicacion y vuelva a intentar marcar.");
-            return;
-          }
           throw { code: 1, message: "User denied Geolocation" };
         }
         const position = await getCurrentPosition();
@@ -3740,7 +3811,7 @@
         saveLogs();
         await persistLogToSupabase(baseLog);
         renderLastResult(baseLog);
-        toast(baseLog.gps_status === "sin_permiso" ? "Intento registrado sin permiso de ubicación." : "Intento registrado con error de GPS.");
+        toast(baseLog.gps_status === "sin_permiso" ? "Marca registrada sin permiso de ubicación." : "Marca registrada con error de GPS.");
       } finally {
         setButtonsLoading(false);
         renderAll();
@@ -3776,7 +3847,84 @@
         <div class="status-title">${log.check_type === "entrada" ? "Entrada" : "Salida"} registrada para ${escapeHtml(log.employee_name)}</div>
         <div class="subtle">${escapeHtml(log.site_name)} · ${fmtDateTime.format(new Date(log.timestamp))}</div>
         <div class="subtle">Distancia al local: ${distance} · Precisión: ${precision}</div>
+        ${log.gps_captured_at ? `<div class="subtle">GPS agregado posteriormente: ${fmtDateTime.format(new Date(log.gps_captured_at))}</div>` : ""}
+        ${syncText}
+        ${gpsAction}
       `;
+    }
+
+    function canAttachGps(log) {
+      return log
+        && log.check_type === "entrada"
+        && !log.latitude
+        && !log.longitude
+        && ["sin_permiso", "error"].includes(log.gps_status);
+    }
+
+    async function updateSyncedLogGps(log) {
+      if (!supabaseClient || !/^[0-9a-f-]{36}$/i.test(String(log.id))) return false;
+      const { error } = await supabaseClient.from("attendance_logs").update({
+        detected_site_id: log.site_id === "SIN-SITIO" ? null : log.site_id,
+        latitude: log.latitude,
+        longitude: log.longitude,
+        gps_accuracy_meters: log.accuracy_meters,
+        distance_to_site_meters: log.distance_to_site_meters,
+        gps_status: toDbGpsStatus(log.gps_status),
+        observations: log.notes || null
+      }).eq("id", log.id);
+      if (error) throw error;
+      return true;
+    }
+
+    async function attachGpsToLog(logId) {
+      const log = logs.find(item => String(item.id) === String(logId));
+      if (!canAttachGps(log)) {
+        toast("Este registro ya tiene ubicación o no es una entrada pendiente.");
+        return;
+      }
+      try {
+        const position = await getCurrentPosition();
+        const { latitude, longitude, accuracy } = position.coords;
+        const detected = nearestActiveSite(latitude, longitude);
+        if (detected) {
+          log.site_id = detected.site.site_id;
+          log.site_name = detected.site.site_name;
+          log.provincia = detected.site.provincia;
+          log.canton = detected.site.canton;
+          log.distance_to_site_meters = Math.round(detected.distance);
+          log.gps_status = detected.distance <= Number(detected.site.radio_metros)
+            ? (Number.isFinite(accuracy) && Math.round(accuracy) > lowAccuracyLimit() ? "baja_precision" : "valido")
+            : "fuera_del_sitio";
+        } else {
+          log.site_id = "SIN-SITIO";
+          log.site_name = "Sin sitio detectado";
+          log.provincia = "";
+          log.canton = "";
+          log.distance_to_site_meters = null;
+          log.gps_status = "fuera_del_sitio";
+        }
+        log.latitude = Number(latitude.toFixed(6));
+        log.longitude = Number(longitude.toFixed(6));
+        log.accuracy_meters = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
+        log.gps_captured_at = new Date().toISOString();
+        log.notes = [log.notes, `GPS agregado posteriormente: ${fmtDateTime.format(new Date(log.gps_captured_at))}`].filter(Boolean).join(" | ");
+        if (log.sync_status === "sincronizado") {
+          try {
+            await updateSyncedLogGps(log);
+          } catch (error) {
+            log.sync_status = "pendiente";
+            log.sync_note = error.message;
+          }
+        } else {
+          await persistLogToSupabase(log);
+        }
+        saveLogs();
+        renderLastResult(log);
+        renderAll();
+        toast("Ubicación agregada al registro.");
+      } catch (error) {
+        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo agregar la ubicación.");
+      }
     }
 
     function filteredLogs() {
@@ -3812,17 +3960,22 @@
         const alertClass = log.gps_status === "fuera_del_sitio" ? "alert-out" : ["sin_permiso", "error", "baja_precision"].includes(log.gps_status) ? "alert-warn" : "";
         const distance = log.distance_to_site_meters == null ? "-" : `${log.distance_to_site_meters} m`;
         const accuracy = log.accuracy_meters == null ? "-" : `${log.accuracy_meters} m`;
+        const pendingSync = log.sync_status === "pendiente" ? `<br><span class="subtle">Pendiente Supabase</span>` : "";
+        const gpsButton = canAttachGps(log)
+          ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}" style="margin-top:6px">Agregar GPS</button>`
+          : "";
         return `
           <tr class="${alertClass}">
             <td>${fmtDateTime.format(new Date(log.timestamp))}</td>
             <td><b>${escapeHtml(log.employee_name)}</b><br><span class="subtle">${escapeHtml(log.employee_code || "-")}</span></td>
             <td>${escapeHtml(log.site_name)}<br><span class="subtle">${escapeHtml(log.provincia)}, ${escapeHtml(log.canton)}${log.project_name ? " · " + escapeHtml(log.project_name) : ""}</span></td>
             <td>${escapeHtml(log.check_type)}</td>
-            <td>${gpsBadge(log.gps_status)}</td>
+            <td>${gpsBadge(log.gps_status)}${pendingSync}</td>
             <td>${distance}</td>
             <td>${accuracy}</td>
             <td>${escapeHtml(log.notes || "-")}</td>
             <td>
+              ${gpsButton}
               <button class="btn small ghost" data-edit-log="${log.id}">Editar</button>
               <button class="btn small danger" data-delete-log="${log.id}" style="margin-top:6px">Eliminar</button>
             </td>
@@ -4045,7 +4198,7 @@
     async function detectCurrentSite() {
       const valid = validateAttendanceForm();
       if (!valid) return;
-      const employee = currentEmployee?.cedula === valid.cedula ? currentEmployee : await loadEmployeeByCedula();
+      const employee = await resolveEmployeeForMark(valid.cedula);
       if (!employee) return;
       $("detectSiteBtn").disabled = true;
       $("detectSiteBtn").textContent = "Detectando...";
@@ -4067,7 +4220,7 @@
         toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo detectar el local.");
       } finally {
         $("detectSiteBtn").disabled = false;
-        $("detectSiteBtn").textContent = "Probar detección GPS";
+        $("detectSiteBtn").textContent = "Probar detección GPS / agregar ubicación";
       }
     }
 
@@ -4076,7 +4229,7 @@
       const headers = [
         "id", "project_name", "employee_name", "employee_code", "site_id", "site_name", "provincia", "canton",
         "check_type", "timestamp", "latitude", "longitude", "accuracy_meters",
-        "distance_to_site_meters", "gps_status", "device_info", "notes"
+        "distance_to_site_meters", "gps_status", "gps_captured_at", "sync_status", "sync_note", "device_info", "notes"
       ];
       const csv = [
         headers.join(","),
@@ -4137,15 +4290,22 @@
       $("checkInBtn").addEventListener("click", () => registerAttendance("entrada"));
       $("checkOutBtn").addEventListener("click", () => registerAttendance("salida"));
       $("detectSiteBtn").addEventListener("click", detectCurrentSite);
+      $("lastResult").addEventListener("click", (event) => {
+        const logId = event.target.dataset.attachGps;
+        if (logId) attachGpsToLog(logId);
+      });
       $("exportCsvBtn").addEventListener("click", exportCsv);
       $("saveManualLogBtn").addEventListener("click", saveManualLog);
       $("resetManualLogBtn").addEventListener("click", resetManualLogForm);
       $("logsTable").addEventListener("click", (event) => {
+        const gpsLogId = event.target.dataset.attachGps;
         const editId = event.target.dataset.editLog;
         const deleteId = event.target.dataset.deleteLog;
+        if (gpsLogId) attachGpsToLog(gpsLogId);
         if (editId) loadManualLogForEdit(editId);
         if (deleteId) deleteManualLog(deleteId);
       });
+      window.addEventListener("online", syncPendingLogs);
       $("adminLoginBtn").addEventListener("click", adminLogin);
       $("adminLogoutBtn").addEventListener("click", adminLogout);
       $("topLogoutBtn").addEventListener("click", adminLogout);
