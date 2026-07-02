@@ -1429,6 +1429,21 @@
       return offlineEmployeeFromLocal(cedula);
     }
 
+    async function submitAttendanceRpc(employeeId, log) {
+      return supabaseClient.rpc("submit_attendance_mark", {
+        p_employee_id: employeeId,
+        p_detected_site_id: log.site_id === "SIN-SITIO" ? null : log.site_id,
+        p_check_type: log.check_type,
+        p_latitude: log.latitude,
+        p_longitude: log.longitude,
+        p_gps_accuracy_meters: log.accuracy_meters,
+        p_distance_to_site_meters: log.distance_to_site_meters,
+        p_gps_status: toDbGpsStatus(log.gps_status),
+        p_device_info: log.device_info || {},
+        p_observations: log.notes || null
+      });
+    }
+
     async function persistLogToSupabase(log) {
       const employeeId = log.employee_id || currentEmployee?.employee_id;
       if (!supabaseOnline || !supabaseClient || !employeeId) {
@@ -1438,18 +1453,7 @@
         return false;
       }
       try {
-        const { data, error } = await supabaseClient.rpc("submit_attendance_mark", {
-          p_employee_id: employeeId,
-          p_detected_site_id: log.site_id === "SIN-SITIO" ? null : log.site_id,
-          p_check_type: log.check_type,
-          p_latitude: log.latitude,
-          p_longitude: log.longitude,
-          p_gps_accuracy_meters: log.accuracy_meters,
-          p_distance_to_site_meters: log.distance_to_site_meters,
-          p_gps_status: toDbGpsStatus(log.gps_status),
-          p_device_info: log.device_info || {},
-          p_observations: log.notes || null
-        });
+        const { data, error } = await submitAttendanceRpc(employeeId, log);
         if (error) throw error;
         if (data) {
           log.id = Array.isArray(data) ? data[0] : data;
@@ -1462,9 +1466,35 @@
         await sendAttendanceAlert(log);
         return true;
       } catch (error) {
-        supabaseOnline = false;
+        const originalMessage = error?.message || "";
+        if (log.gps_status === "baja_precision" && /BAJA_PRECISION|gps_status|enum|invalid input/i.test(originalMessage)) {
+          log.gps_status = "error";
+          log.notes = [log.notes, "GPS baja precision: Supabase aun no tiene habilitado BAJA_PRECISION."].filter(Boolean).join(" | ");
+          try {
+            const { data, error: retryError } = await submitAttendanceRpc(employeeId, log);
+            if (retryError) throw retryError;
+            if (data) {
+              log.id = Array.isArray(data) ? data[0] : data;
+              const local = logs.find(item => item.timestamp === log.timestamp && item.employee_code === log.employee_code && item.check_type === log.check_type);
+              if (local) {
+                local.id = log.id;
+                local.gps_status = log.gps_status;
+                local.notes = log.notes;
+              }
+            }
+            log.sync_status = "sincronizado";
+            log.sync_note = "Guardado como ERROR_GPS por compatibilidad. Ejecutar strengthening_settings_alerts.sql.";
+            saveLogs();
+            await sendAttendanceAlert(log);
+            return true;
+          } catch (retryError) {
+            error = retryError;
+          }
+        }
+        const message = error?.message || originalMessage || "Error desconocido al sincronizar.";
+        supabaseOnline = /Failed to fetch|NetworkError|Load failed|offline/i.test(message) ? false : supabaseOnline;
         log.sync_status = "pendiente";
-        log.sync_note = error.message;
+        log.sync_note = message;
         saveLogs();
         setSupabaseStatus("error", `Registro guardado localmente. Supabase respondió: ${error.message}`);
         return false;
@@ -3795,11 +3825,13 @@
         }
         logs.unshift(baseLog);
         saveLogs();
-        await persistLogToSupabase(baseLog);
+        const synced = await persistLogToSupabase(baseLog);
         renderLastResult(baseLog);
+        if (!synced) toast("Marca pendiente de enviar a Supabase.");
         const accuracyText = baseLog.gps_status === "baja_precision" ? " Precisión GPS baja." : "";
         const autoText = ` Local detectado: ${baseLog.site_name}.`;
-        toast(`${checkType === "entrada" ? "Entrada" : "Salida"} registrada.${autoText}${accuracyText}`);
+        const syncText = synced ? "" : " Pendiente de enviar a Supabase.";
+        toast(`${checkType === "entrada" ? "Entrada" : "Salida"} registrada.${autoText}${accuracyText}${syncText}`);
       } catch (error) {
         baseLog.gps_status = error && error.code === 1 ? "sin_permiso" : "error";
         if (isDuplicate(checkType, employeeName, employeeCode, baseLog.site_id)) {
@@ -3809,7 +3841,7 @@
         baseLog.notes = [baseLog.notes, error?.message || "No se pudo obtener ubicación"].filter(Boolean).join(" | ");
         logs.unshift(baseLog);
         saveLogs();
-        await persistLogToSupabase(baseLog);
+        const synced = await persistLogToSupabase(baseLog);
         renderLastResult(baseLog);
         toast(baseLog.gps_status === "sin_permiso" ? "Marca registrada sin permiso de ubicación." : "Marca registrada con error de GPS.");
       } finally {
