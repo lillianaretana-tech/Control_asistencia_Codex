@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
@@ -495,13 +495,13 @@
           <div class="mark">GPS</div>
           <div>
             <h1>Control de Asistencia</h1>
-            <div class="subtle">Entrada y salida con validación por ubicación</div>
+            <div class="subtle">Entrada y salida con validaciÃ³n por ubicaciÃ³n</div>
           </div>
         </div>
         <button id="topLogoutBtn" class="btn small ghost session-only">Salir</button>
       </div>
       <nav class="tabs" aria-label="Vistas">
-        <button id="adminAccessBtn" class="admin-entry" type="button">Administración</button>
+        <button id="adminAccessBtn" class="admin-entry" type="button">AdministraciÃ³n</button>
       </nav>
     </header>
 
@@ -516,21 +516,21 @@
             <div class="panel-body">
               <div class="form-grid">
                 <label>
-                  Cédula
-                  <input id="employeeCode" autocomplete="off" inputmode="numeric" placeholder="Ingrese su cédula">
+                  CÃ©dula
+                  <input id="employeeCode" autocomplete="off" inputmode="numeric" placeholder="Ingrese su cÃ©dula">
                 </label>
                 <label>
                   Funcionario
-                  <input id="employeeName" autocomplete="name" placeholder="Se cargará desde Supabase" readonly>
+                  <input id="employeeName" autocomplete="name" placeholder="Se cargarÃ¡ desde Supabase" readonly>
                 </label>
                 <label>
                   Site/local detectado
-                  <input id="siteSearch" list="siteOptions" placeholder="Se detecta automáticamente con GPS" readonly>
+                  <input id="siteSearch" list="siteOptions" placeholder="Se detecta automÃ¡ticamente con GPS" readonly>
                   <datalist id="siteOptions"></datalist>
                 </label>
                 <div id="selectedSiteInfo" class="status-box">
-                  <div class="status-title">Detección GPS opcional</div>
-                  <div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicación, podrá agregarla al registro.</div>
+                  <div class="status-title">DetecciÃ³n GPS opcional</div>
+                  <div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicaciÃ³n, podrÃ¡ agregarla al registro.</div>
                 </div>
                 <div id="gpsPermissionInfo" class="status-box">
                   <div class="status-title">Permiso de ubicacion requerido</div>
@@ -539,36 +539,37 @@
                 </div>
                 <label>
                   Notas
-                  <textarea id="notes" placeholder="Observación opcional"></textarea>
+                  <textarea id="notes" placeholder="ObservaciÃ³n opcional"></textarea>
                 </label>
                 <div class="actions primary-actions">
                   <button id="checkInBtn" class="btn blue">Registrar entrada</button>
                   <button id="checkOutBtn" class="btn orange">Registrar salida</button>
                 </div>
-                <button id="detectSiteBtn" class="btn ghost">Probar detección GPS / agregar ubicación</button>
+                <button id="detectSiteBtn" class="btn ghost">Probar detecciÃ³n GPS / agregar ubicaciÃ³n</button>
+                <button id="syncPendingBtn" class="btn ghost">Sincronizar pendientes</button>
               </div>
             </div>
           </section>
 
           <section class="panel">
             <div class="panel-head">
-              <h2>Último resultado</h2>
+              <h2>Ãšltimo resultado</h2>
               <span id="clockNow" class="subtle"></span>
             </div>
             <div class="panel-body">
               <div id="lastResult" class="status-box">
                 <span class="badge neutral">Pendiente</span>
-                <div class="status-title">Aún no hay marca en esta sesión</div>
-                <div class="subtle">La hora se registra automáticamente y no puede editarse manualmente.</div>
+                <div class="status-title">AÃºn no hay marca en esta sesiÃ³n</div>
+                <div class="subtle">La hora se registra automÃ¡ticamente y no puede editarse manualmente.</div>
               </div>
               <div class="metrics" style="margin-top:12px">
                 <div class="metric"><b id="todayCount">0</b><span class="subtle">Marcas hoy</span></div>
-                <div class="metric"><b id="validCount">0</b><span class="subtle">Válidas</span></div>
+                <div class="metric"><b id="validCount">0</b><span class="subtle">VÃ¡lidas</span></div>
                 <div class="metric"><b id="outCount">0</b><span class="subtle">Fuera sitio</span></div>
                 <div class="metric"><b id="gpsWarnCount">0</b><span class="subtle">Sin GPS</span></div>
               </div>
               <div style="margin-top:12px" class="helper">
-                Si la precisión GPS supera 100 metros, el sistema guardará la marca y mostrará advertencia.
+                Si la precisiÃ³n GPS supera 100 metros, el sistema guardarÃ¡ la marca y mostrarÃ¡ advertencia.
               </div>
             </div>
           </section>
@@ -576,11 +577,11 @@
       </section>
 
       <section id="adminView" class="view">
-        <nav class="module-nav admin-protected" aria-label="Módulos administrativos">
-          <span class="module-nav-label">Operación diaria</span>
+        <nav class="module-nav admin-protected" aria-label="MÃ³dulos administrativos">
+          <span class="module-nav-label">OperaciÃ³n diaria</span>
           <button data-scroll-target="adminLogsPanel">Registros</button>
           <button data-scroll-target="adminSummaryPanel">Resumen diario</button>
-          <button data-scroll-target="adminCalcPanel">Cálculo</button>
+          <button data-scroll-target="adminCalcPanel">CÃ¡lculo</button>
           <button data-scroll-target="adminIncidentsPanel">Incidencias</button>
           <span class="module-nav-label">Personal y locales</span>
           <button data-scroll-target="adminProjectsPanel">Proyectos</button>
@@ -594,7 +595,7 @@
           <button data-scroll-target="adminDashboardPanel">Dashboard ejecutivo</button>
           <button data-scroll-target="adminCalcPanel">Exportar Excel</button>
           <button data-scroll-target="adminCalcPanel">Resumen RH-F-27</button>
-          <span class="module-nav-label">Configuración</span>
+          <span class="module-nav-label">ConfiguraciÃ³n</span>
           <button data-scroll-target="adminConfigPanel">Supabase / Make / GPS</button>
         </nav>
 
@@ -606,19 +607,19 @@
           <div class="panel-body">
             <div id="supabaseStatus" class="status-box" style="margin-bottom:12px">
               <span class="badge neutral">Conectando</span>
-              <div class="subtle">La app usa Supabase cuando está disponible y localStorage como respaldo.</div>
+              <div class="subtle">La app usa Supabase cuando estÃ¡ disponible y localStorage como respaldo.</div>
             </div>
             <div class="status-box" style="margin-bottom:12px">
-              <div class="status-title">Sesión administrativa</div>
+              <div class="status-title">SesiÃ³n administrativa</div>
               <div class="form-grid cols-2 admin-login-form" style="margin-top:8px">
                 <label>Correo<input id="adminEmail" type="email" autocomplete="email" placeholder="admin@empresa.com"></label>
                 <label>Clave<input id="adminPassword" type="password" autocomplete="current-password" placeholder="Clave"></label>
               </div>
               <div class="actions primary-actions admin-login-form" style="margin-top:10px">
                 <button id="adminLoginBtn" class="btn blue">Ingresar con Supabase</button>
-                <button id="adminLogoutBtn" class="btn ghost">Cerrar sesión</button>
+                <button id="adminLogoutBtn" class="btn ghost">Cerrar sesiÃ³n</button>
               </div>
-              <button id="adminLogoutInlineBtn" class="btn small ghost session-only" style="margin-top:10px">Cerrar sesión</button>
+              <button id="adminLogoutInlineBtn" class="btn small ghost session-only" style="margin-top:10px">Cerrar sesiÃ³n</button>
               <div id="adminAuthStatus" class="helper" style="margin-top:8px">Ingrese con correo y clave para administrar datos.</div>
             </div>
             <div class="status-box admin-protected" style="margin-bottom:12px">
@@ -640,13 +641,13 @@
             </div>
             <div class="filters admin-protected">
               <label>Fecha<input id="filterDate" type="date"></label>
-              <label>Funcionario<input id="filterEmployee" placeholder="Nombre o código"></label>
+              <label>Funcionario<input id="filterEmployee" placeholder="Nombre o cÃ³digo"></label>
               <label>Site/local<select id="filterSite"><option value="">Todos</option></select></label>
               <label>Provincia<select id="filterProvince"><option value="">Todas</option></select></label>
-              <label>Cantón<select id="filterCanton"><option value="">Todos</option></select></label>
+              <label>CantÃ³n<select id="filterCanton"><option value="">Todos</option></select></label>
               <label>Tipo<select id="filterType"><option value="">Todos</option><option value="entrada">Entrada</option><option value="salida">Salida</option></select></label>
-              <label>Estado GPS<select id="filterGps"><option value="">Todos</option><option value="valido">Válido</option><option value="baja_precision">Baja precisión</option><option value="fuera_del_sitio">Fuera del sitio</option><option value="sin_permiso">Sin permiso</option><option value="error">Error</option></select></label>
-              <label>Orden<select id="filterOrder"><option value="desc">Más recientes</option><option value="asc">Más antiguos</option></select></label>
+              <label>Estado GPS<select id="filterGps"><option value="">Todos</option><option value="valido">VÃ¡lido</option><option value="baja_precision">Baja precisiÃ³n</option><option value="fuera_del_sitio">Fuera del sitio</option><option value="sin_permiso">Sin permiso</option><option value="error">Error</option></select></label>
+              <label>Orden<select id="filterOrder"><option value="desc">MÃ¡s recientes</option><option value="asc">MÃ¡s antiguos</option></select></label>
             </div>
             <div class="table-wrap admin-protected">
               <table>
@@ -658,7 +659,7 @@
                     <th>Tipo</th>
                     <th>GPS</th>
                     <th>Distancia</th>
-                    <th>Precisión</th>
+                    <th>PrecisiÃ³n</th>
                     <th>Notas</th>
                     <th>Accion</th>
                   </tr>
@@ -702,11 +703,11 @@
           <div class="panel-body">
             <div class="form-grid cols-2">
               <label>Cliente<input id="adminClientName" placeholder="Ej. SBM / Proyecto propio"></label>
-              <label>Código cliente<input id="adminClientCode" placeholder="Ej. SBM_CR"></label>
+              <label>CÃ³digo cliente<input id="adminClientCode" placeholder="Ej. SBM_CR"></label>
               <label>Proyecto<input id="adminProjectName" placeholder="Nombre del proyecto"></label>
-              <label>Código proyecto<input id="adminProjectCode" placeholder="Ej. SBM_OFICINAS"></label>
+              <label>CÃ³digo proyecto<input id="adminProjectCode" placeholder="Ej. SBM_OFICINAS"></label>
             </div>
-            <div class="helper" style="margin-top:8px">Cree aquí sus propios proyectos. Luego podrá crear locales y funcionarios dentro del proyecto seleccionado.</div>
+            <div class="helper" style="margin-top:8px">Cree aquÃ­ sus propios proyectos. Luego podrÃ¡ crear locales y funcionarios dentro del proyecto seleccionado.</div>
             <div class="status-box" style="margin-top:12px">
               <div class="status-title">Importar proyectos</div>
               <div class="helper">Columnas requeridas: client_name, client_code, project_name, project_code.</div>
@@ -723,19 +724,19 @@
 
         <section id="adminEmployeesPanel" class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
-            <h2>Funcionarios y asignación</h2>
+            <h2>Funcionarios y asignaciÃ³n</h2>
             <button id="saveEmployeeAdminBtn" class="btn small blue">Guardar funcionario</button>
           </div>
           <div class="panel-body">
             <div class="form-grid cols-2">
-              <label>Cédula<input id="adminEmployeeCedula" inputmode="numeric" placeholder="Cédula"></label>
-              <label>Código empresa<input id="adminEmployeeCodigoEmpresa" placeholder="Ej. CR1-6065"></label>
+              <label>CÃ©dula<input id="adminEmployeeCedula" inputmode="numeric" placeholder="CÃ©dula"></label>
+              <label>CÃ³digo empresa<input id="adminEmployeeCodigoEmpresa" placeholder="Ej. CR1-6065"></label>
               <label>Nombre completo<input id="adminEmployeeName" placeholder="Nombre completo"></label>
-              <label>Teléfono<input id="adminEmployeePhone" placeholder="Teléfono"></label>
+              <label>TelÃ©fono<input id="adminEmployeePhone" placeholder="TelÃ©fono"></label>
               <label>Correo<input id="adminEmployeeEmail" type="email" placeholder="Correo opcional"></label>
-              <label>Puesto<input id="adminEmployeePosition" placeholder="Ej. Operario, Líder, Supervisor"></label>
-              <label>Rol operativo<select id="adminEmployeeRoleType"><option value="employee">Funcionario</option><option value="backup">Backup</option><option value="supervisor">Supervisor</option><option value="leader">Líder</option><option value="manager">Project Manager</option></select></label>
-              <label>Jornada<select id="adminEmployeeJornada"><option>Completa-Día-Discontinua</option><option>Completa-Día-Continua</option><option>Parcial-Día-Discontinua</option><option>Jornada continua</option></select></label>
+              <label>Puesto<input id="adminEmployeePosition" placeholder="Ej. Operario, LÃ­der, Supervisor"></label>
+              <label>Rol operativo<select id="adminEmployeeRoleType"><option value="employee">Funcionario</option><option value="backup">Backup</option><option value="supervisor">Supervisor</option><option value="leader">LÃ­der</option><option value="manager">Project Manager</option></select></label>
+              <label>Jornada<select id="adminEmployeeJornada"><option>Completa-DÃ­a-Discontinua</option><option>Completa-DÃ­a-Continua</option><option>Parcial-DÃ­a-Discontinua</option><option>Jornada continua</option></select></label>
               <label>Horas semanales<input id="adminEmployeeHours" type="number" min="1" max="60" step="0.5" value="48"></label>
               <label style="grid-column:1/-1">Proyecto<select id="adminProjectSelect"><option value="">Seleccione proyecto</option></select></label>
               <label style="grid-column:1/-1">Site asignado<select id="adminEmployeeSite"><option value="">Seleccione site</option></select></label>
@@ -743,7 +744,7 @@
               <label style="display:flex;align-items:center;gap:8px"><input id="adminEmployeeIsBackup" type="checkbox" style="width:auto;min-height:auto"> Es backup/cubre otros sites</label>
               <label style="grid-column:1/-1">Notas<textarea id="adminEmployeeNotes" placeholder="Notas internas"></textarea></label>
             </div>
-            <div class="helper" style="margin-top:8px">Requiere sesión Supabase con perfil admin, manager o supervisor autorizado.</div>
+            <div class="helper" style="margin-top:8px">Requiere sesiÃ³n Supabase con perfil admin, manager o supervisor autorizado.</div>
             <div class="status-box" style="margin-top:12px">
               <div class="status-title">Importar funcionarios</div>
               <div class="helper">Columnas requeridas: cedula, full_name, site_code o site_name. Opcionales: codigo_empresa, phone, email, position, role_type, jornada, weekly_hours, is_backup, notes.</div>
@@ -760,12 +761,12 @@
                 <thead>
                   <tr>
                     <th>Funcionario</th>
-                    <th>Cédula</th>
+                    <th>CÃ©dula</th>
                     <th>Site</th>
                     <th>Rol</th>
                     <th>Jornada</th>
                     <th>Estado</th>
-                    <th>Acción</th>
+                    <th>AcciÃ³n</th>
                   </tr>
                 </thead>
                 <tbody id="employeesTable"></tbody>
@@ -783,12 +784,12 @@
             <div class="form-grid cols-2">
               <label style="grid-column:1/-1">Funcionario<select id="scheduleEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
             </div>
-            <div class="helper" style="margin-top:8px">Defina el horario esperado por día. El sistema lo usará para calcular tardías, salidas anticipadas, ausencias y horas trabajadas.</div>
+            <div class="helper" style="margin-top:8px">Defina el horario esperado por dÃ­a. El sistema lo usarÃ¡ para calcular tardÃ­as, salidas anticipadas, ausencias y horas trabajadas.</div>
             <div style="margin-top:14px" class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Día</th>
+                    <th>DÃ­a</th>
                     <th>Libre</th>
                     <th>Entrada</th>
                     <th>Salida</th>
@@ -806,10 +807,10 @@
         <section id="adminScheduleImportPanel" class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
             <h2>Importar horarios (Excel)</h2>
-            <button id="runScheduleImportBtn" class="btn small blue" disabled>Importar válidas</button>
+            <button id="runScheduleImportBtn" class="btn small blue" disabled>Importar vÃ¡lidas</button>
           </div>
           <div class="panel-body">
-            <div class="helper">Use la plantilla oficial (hoja "horarios", cabecera en la fila 3). Se importan al <b>proyecto seleccionado arriba</b>, resolviendo cada funcionario por cédula o código. Las filas con error se omiten.</div>
+            <div class="helper">Use la plantilla oficial (hoja "horarios", cabecera en la fila 3). Se importan al <b>proyecto seleccionado arriba</b>, resolviendo cada funcionario por cÃ©dula o cÃ³digo. Las filas con error se omiten.</div>
             <div class="form-grid cols-2" style="margin-top:10px">
               <label style="grid-column:1/-1">Archivo .xlsx<input type="file" id="scheduleImportFile" accept=".xlsx,.xls"></label>
             </div>
@@ -832,7 +833,7 @@
                     <th>Site</th>
                     <th>Tipo</th>
                     <th>Comentario</th>
-                    <th>Acción</th>
+                    <th>AcciÃ³n</th>
                   </tr>
                 </thead>
                 <tbody id="incidentsTable"></tbody>
@@ -851,7 +852,7 @@
               <label>Funcionario<select id="requestEmployeeSelect"><option value="">Seleccione funcionario</option></select></label>
               <label>Tipo<select id="requestType">
                 <option value="permiso_horas">Permiso por horas</option>
-                <option value="permiso_dia">Permiso por día</option>
+                <option value="permiso_dia">Permiso por dÃ­a</option>
                 <option value="ausencia_justificada">Ausencia justificada</option>
                 <option value="vacaciones">Vacaciones</option>
                 <option value="incapacidad">Incapacidad</option>
@@ -867,10 +868,10 @@
               <label style="grid-column:1/-1">Comentarios<textarea id="requestComments" placeholder="Comentarios opcionales"></textarea></label>
               <label style="grid-column:1/-1">Adjunto (URL)<input id="requestAttachment" placeholder="Enlace a comprobante (opcional)"></label>
             </div>
-            <div class="helper" style="margin-top:8px">Al aprobarse, el cálculo de asistencia deja de marcar ausencia o tardía indebida en esas fechas.</div>
+            <div class="helper" style="margin-top:8px">Al aprobarse, el cÃ¡lculo de asistencia deja de marcar ausencia o tardÃ­a indebida en esas fechas.</div>
             <div style="margin-top:14px" class="table-wrap">
               <table>
-                <thead><tr><th>Funcionario</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Estado</th><th>Acción</th></tr></thead>
+                <thead><tr><th>Funcionario</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Motivo</th><th>Estado</th><th>AcciÃ³n</th></tr></thead>
                 <tbody id="requestsTable"></tbody>
               </table>
             </div>
@@ -879,16 +880,16 @@
 
         <section id="adminCalcPanel" class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
-            <h2>Cálculo de asistencia</h2>
+            <h2>CÃ¡lculo de asistencia</h2>
             <button id="runAttendanceCalcBtn" class="btn small blue">Calcular</button>
           </div>
           <div class="panel-body">
-            <div class="helper">Compara las marcas contra el horario para calcular tardías, salidas anticipadas, horas trabajadas y ausencias. Usa el proyecto seleccionado arriba.</div>
+            <div class="helper">Compara las marcas contra el horario para calcular tardÃ­as, salidas anticipadas, horas trabajadas y ausencias. Usa el proyecto seleccionado arriba.</div>
             <div class="form-grid cols-2" style="margin-top:10px">
               <label>Desde<input type="date" id="calcDateFrom"></label>
               <label>Hasta<input type="date" id="calcDateTo"></label>
             </div>
-            <div style="margin-top:8px"><button id="lastWeekBtn" class="btn small ghost">Semana anterior (Lun–Dom)</button></div>
+            <div style="margin-top:8px"><button id="lastWeekBtn" class="btn small ghost">Semana anterior (Lunâ€“Dom)</button></div>
             <div id="attendanceCalcSummary" style="margin-top:10px"></div>
             <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
               <button id="copyCalcCommentsBtn" class="btn small ghost" style="display:none">Copiar comentarios</button>
@@ -898,7 +899,7 @@
             </div>
             <div class="status-box" style="margin-top:10px">
               <div class="status-title">Plantilla oficial RRHH</div>
-              <div class="helper">Opcional: cargue la plantilla .xlsx oficial. La app agrega una hoja de datos sin alterar hojas, formatos o fórmulas existentes.</div>
+              <div class="helper">Opcional: cargue la plantilla .xlsx oficial. La app agrega una hoja de datos sin alterar hojas, formatos o fÃ³rmulas existentes.</div>
               <label style="margin-top:8px">Archivo plantilla<input id="officialTemplateFile" type="file" accept=".xlsx,.xls"></label>
             </div>
             <div id="attendanceCalcResult" style="margin-top:12px"><div class="empty">Elija el rango de fechas y presione Calcular.</div></div>
@@ -912,32 +913,32 @@
             <button id="genDashboardBtn" class="btn small blue">Generar dashboard</button>
           </div>
           <div class="panel-body">
-            <div class="helper">Indicadores del rango calculado arriba, agregados por local y por supervisor. Calculá primero un rango en "Cálculo de asistencia".</div>
-            <div id="dashboardResult" style="margin-top:12px"><div class="empty">Generá el dashboard después de calcular un rango.</div></div>
+            <div class="helper">Indicadores del rango calculado arriba, agregados por local y por supervisor. CalculÃ¡ primero un rango en "CÃ¡lculo de asistencia".</div>
+            <div id="dashboardResult" style="margin-top:12px"><div class="empty">GenerÃ¡ el dashboard despuÃ©s de calcular un rango.</div></div>
           </div>
         </section>
 
         <section id="adminConfigPanel" class="panel admin-protected" style="margin-top:14px">
           <div class="panel-head">
-            <h2>Configuración</h2>
-            <button id="saveSettingsBtn" class="btn small blue">Guardar configuración</button>
+            <h2>ConfiguraciÃ³n</h2>
+            <button id="saveSettingsBtn" class="btn small blue">Guardar configuraciÃ³n</button>
           </div>
           <div class="panel-body">
             <div class="form-grid cols-2">
               <label>Nombre del sistema<input id="settingSystemName" placeholder="Control de Asistencia GPS"></label>
               <label>Radio GPS por defecto (m)<input id="settingDefaultRadius" type="number" min="10" step="1"></label>
-              <label>Límite baja precisión GPS (m)<input id="settingLowAccuracy" type="number" min="10" step="1"></label>
+              <label>LÃ­mite baja precisiÃ³n GPS (m)<input id="settingLowAccuracy" type="number" min="10" step="1"></label>
               <label>Alertas por correo<select id="settingEmailAlerts"><option value="false">Desactivadas</option><option value="true">Activadas</option></select></label>
               <label style="grid-column:1/-1">Make Webhook URL<input id="settingMakeWebhook" placeholder="https://hook.make.com/..."></label>
               <label>Correo respaldo administrativo<input id="settingBackupEmail" type="email" placeholder="correo@empresa.com"></label>
-              <label>Tolerancia tardía (min)<input id="settingLateTolerance" type="number" min="0" step="1"></label>
+              <label>Tolerancia tardÃ­a (min)<input id="settingLateTolerance" type="number" min="0" step="1"></label>
               <label>Tolerancia salida anticipada (min)<input id="settingEarlyTolerance" type="number" min="0" step="1"></label>
             </div>
             <div class="actions primary-actions" style="margin-top:12px">
               <button id="loadDemoBtn" class="btn ghost">Cargar demo local</button>
               <button id="clearDemoBtn" class="btn danger">Limpiar datos locales demo</button>
             </div>
-            <div class="helper" style="margin-top:8px">La operación real usa Supabase. Solo esta configuración queda como respaldo local si la tabla settings no existe. El demo local no se mezcla con datos reales.</div>
+            <div class="helper" style="margin-top:8px">La operaciÃ³n real usa Supabase. Solo esta configuraciÃ³n queda como respaldo local si la tabla settings no existe. El demo local no se mezcla con datos reales.</div>
           </div>
         </section>
       </section>
@@ -958,17 +959,17 @@
                 <div class="form-grid cols-2">
                 <input id="siteEditId" type="hidden">
                 <label style="grid-column:1/-1">Proyecto<select id="siteProjectSelect"><option value="">Seleccione proyecto</option></select></label>
-                <label>Nombre del local<input id="siteName" placeholder="Ej. Sucursal San José"></label>
+                <label>Nombre del local<input id="siteName" placeholder="Ej. Sucursal San JosÃ©"></label>
                 <label>Provincia<input id="siteProvince" placeholder="Provincia"></label>
-                <label>Cantón<input id="siteCanton" placeholder="Cantón"></label>
+                <label>CantÃ³n<input id="siteCanton" placeholder="CantÃ³n"></label>
                 <label>Radio permitido (m)<input id="siteRadius" type="number" min="10" step="1" value="100"></label>
                 <label>Latitud<input id="siteLat" type="number" step="0.000001" placeholder="9.932542"></label>
                 <label>Longitud<input id="siteLng" type="number" step="0.000001" placeholder="-84.079578"></label>
-                <label style="grid-column:1/-1">Dirección<textarea id="siteAddress" placeholder="Dirección física del local"></textarea></label>
+                <label style="grid-column:1/-1">DirecciÃ³n<textarea id="siteAddress" placeholder="DirecciÃ³n fÃ­sica del local"></textarea></label>
                 <label>Activo<select id="siteActive"><option value="true">Activo</option><option value="false">Inactivo</option></select></label>
               </div>
               <div class="actions" style="margin-top:12px">
-                <button id="captureSiteLocationBtn" class="btn ghost">Capturar ubicación actual</button>
+                <button id="captureSiteLocationBtn" class="btn ghost">Capturar ubicaciÃ³n actual</button>
                 <button id="saveSiteBtn" class="btn blue">Guardar local</button>
               </div>
             </div>
@@ -976,13 +977,13 @@
 
           <section id="sitesCatalogPanel" class="panel">
             <div class="panel-head">
-              <h2>Catálogo de sites/locales</h2>
+              <h2>CatÃ¡logo de sites/locales</h2>
               <span id="siteCount" class="badge neutral">0</span>
             </div>
             <div class="panel-body">
               <label style="margin-bottom:12px">
                 Buscar local
-                <input id="siteCatalogSearch" placeholder="Nombre, provincia, cantón o dirección">
+                <input id="siteCatalogSearch" placeholder="Nombre, provincia, cantÃ³n o direcciÃ³n">
               </label>
               <div id="siteList" class="grid site-list"></div>
             </div>
@@ -1046,10 +1047,10 @@
     const seedSites = [
       {
         site_id: "SJ-CENTRO",
-        site_name: "Sucursal San José Centro",
-        provincia: "San José",
-        canton: "San José",
-        direccion: "Avenida Central, San José",
+        site_name: "Sucursal San JosÃ© Centro",
+        provincia: "San JosÃ©",
+        canton: "San JosÃ©",
+        direccion: "Avenida Central, San JosÃ©",
         latitud: 9.932542,
         longitud: -84.079578,
         radio_metros: 120,
@@ -1180,21 +1181,21 @@
           // localStorage remains the fallback when the optional settings table does not exist.
         }
       }
-      toast("Configuración guardada.");
+      toast("ConfiguraciÃ³n guardada.");
     }
 
     function loadDemoDataLocal() {
-      if (!confirm("Esto cargará datos demo solo en este navegador. No se enviarán a Supabase. ¿Continuar?")) return;
+      if (!confirm("Esto cargarÃ¡ datos demo solo en este navegador. No se enviarÃ¡n a Supabase. Â¿Continuar?")) return;
       const now = new Date();
       sites = [
-        { site_id: "DEMO-SJ", site_code: "DEMO-SJ", site_name: "Demo San José", provincia: "San José", canton: "San José", direccion: "Local demo", latitud: 9.932542, longitud: -84.079578, radio_metros: 120, activo: true },
+        { site_id: "DEMO-SJ", site_code: "DEMO-SJ", site_name: "Demo San JosÃ©", provincia: "San JosÃ©", canton: "San JosÃ©", direccion: "Local demo", latitud: 9.932542, longitud: -84.079578, radio_metros: 120, activo: true },
         { site_id: "DEMO-AL", site_code: "DEMO-AL", site_name: "Demo Alajuela", provincia: "Alajuela", canton: "Alajuela", direccion: "Local demo", latitud: 10.01625, longitud: -84.21163, radio_metros: 150, activo: true },
         { site_id: "DEMO-HE", site_code: "DEMO-HE", site_name: "Demo Heredia", provincia: "Heredia", canton: "Heredia", direccion: "Local demo", latitud: 9.99814, longitud: -84.11725, radio_metros: 130, activo: true }
       ];
       logs = [
-        { id: uid("demo"), employee_name: "Demo Funcionario 1", employee_code: "100000001", site_id: "DEMO-SJ", site_name: "Demo San José", provincia: "San José", canton: "San José", check_type: "entrada", timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 5).toISOString(), latitude: 9.93254, longitude: -84.07957, accuracy_meters: 20, distance_to_site_meters: 8, gps_status: "valido", device_info: { source: "demo" }, notes: "Demo" },
+        { id: uid("demo"), employee_name: "Demo Funcionario 1", employee_code: "100000001", site_id: "DEMO-SJ", site_name: "Demo San JosÃ©", provincia: "San JosÃ©", canton: "San JosÃ©", check_type: "entrada", timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 5).toISOString(), latitude: 9.93254, longitude: -84.07957, accuracy_meters: 20, distance_to_site_meters: 8, gps_status: "valido", device_info: { source: "demo" }, notes: "Demo" },
         { id: uid("demo"), employee_name: "Demo Funcionario 2", employee_code: "100000002", site_id: "DEMO-AL", site_name: "Demo Alajuela", provincia: "Alajuela", canton: "Alajuela", check_type: "entrada", timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 30).toISOString(), latitude: 10.02, longitude: -84.25, accuracy_meters: 25, distance_to_site_meters: 1200, gps_status: "fuera_del_sitio", device_info: { source: "demo" }, notes: "Demo fuera de sitio" },
-        { id: uid("demo"), employee_name: "Demo Funcionario 3", employee_code: "100000003", site_id: "DEMO-HE", site_name: "Demo Heredia", provincia: "Heredia", canton: "Heredia", check_type: "entrada", timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0).toISOString(), latitude: 9.99814, longitude: -84.11725, accuracy_meters: 180, distance_to_site_meters: 5, gps_status: "baja_precision", device_info: { source: "demo" }, notes: "Demo precisión baja" }
+        { id: uid("demo"), employee_name: "Demo Funcionario 3", employee_code: "100000003", site_id: "DEMO-HE", site_name: "Demo Heredia", provincia: "Heredia", canton: "Heredia", check_type: "entrada", timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0).toISOString(), latitude: 9.99814, longitude: -84.11725, accuracy_meters: 180, distance_to_site_meters: 5, gps_status: "baja_precision", device_info: { source: "demo" }, notes: "Demo precisiÃ³n baja" }
       ];
       saveSites();
       saveLogs();
@@ -1203,7 +1204,7 @@
     }
 
     function clearDemoDataLocal() {
-      if (!confirm("Esto limpiará sites y marcas locales de este navegador. No borra Supabase. ¿Continuar?")) return;
+      if (!confirm("Esto limpiarÃ¡ sites y marcas locales de este navegador. No borra Supabase. Â¿Continuar?")) return;
       localStorage.removeItem(STORAGE.sites);
       localStorage.removeItem(STORAGE.logs);
       sites = [];
@@ -1353,18 +1354,18 @@
 
     async function loadSupabaseData() {
       if (!supabaseClient) {
-        setSupabaseStatus("offline", "No se cargó la librería de Supabase. Se usará localStorage.");
+        setSupabaseStatus("offline", "No se cargÃ³ la librerÃ­a de Supabase. Se usarÃ¡ localStorage.");
         return;
       }
       supabaseOnline = true;
-      setSupabaseStatus("online", "Supabase conectado. Ingrese la cédula para cargar funcionario y sites asignados.");
+      setSupabaseStatus("online", "Supabase conectado. Ingrese la cÃ©dula para cargar funcionario y sites asignados.");
       syncPendingLogs();
     }
 
     async function loadEmployeeByCedula() {
       const cedula = $("employeeCode").value.trim();
       if (!cedula || !supabaseClient) return null;
-      setSupabaseStatus("loading", "Buscando funcionario por cédula...");
+      setSupabaseStatus("loading", "Buscando funcionario por cÃ©dula...");
       try {
         const { data, error } = await supabaseClient.rpc("lookup_employee_by_cedula", { p_cedula: cedula });
         if (error) throw error;
@@ -1375,7 +1376,7 @@
           sites = [];
           saveSites();
           renderAll();
-          setSupabaseStatus("warn", "No se encontró un funcionario activo con esa cédula.");
+          setSupabaseStatus("warn", "No se encontrÃ³ un funcionario activo con esa cÃ©dula.");
           return null;
         }
         employee.cedula = cedula;
@@ -1425,7 +1426,7 @@
       if (currentEmployee?.cedula === cedula) return currentEmployee;
       const remote = await loadEmployeeByCedula();
       if (remote) return remote;
-      setSupabaseStatus("offline", "Sin conexión a Supabase. La marca se guardará localmente y quedará pendiente de sincronizar.");
+      setSupabaseStatus("offline", "Sin conexiÃ³n a Supabase. La marca se guardarÃ¡ localmente y quedarÃ¡ pendiente de sincronizar.");
       return offlineEmployeeFromLocal(cedula);
     }
 
@@ -1444,8 +1445,43 @@
       });
     }
 
+    async function ensureEmployeeIdForLog(log) {
+      if (log.employee_id) return log.employee_id;
+      if (currentEmployee?.employee_id && currentEmployee.cedula === log.employee_code) {
+        log.employee_id = currentEmployee.employee_id;
+        saveLogs();
+        return log.employee_id;
+      }
+      const saved = JSON.parse(localStorage.getItem(STORAGE.employee) || "{}");
+      if (saved.employee_id && saved.employee_code === log.employee_code) {
+        log.employee_id = saved.employee_id;
+        saveLogs();
+        return log.employee_id;
+      }
+      if (!supabaseClient || !log.employee_code) return null;
+      try {
+        const { data, error } = await supabaseClient.rpc("lookup_employee_by_cedula", { p_cedula: log.employee_code });
+        if (error) throw error;
+        const employee = Array.isArray(data) ? data[0] : data;
+        if (!employee?.employee_id) {
+          log.sync_note = "No se encontro funcionario activo para sincronizar.";
+          saveLogs();
+          return null;
+        }
+        log.employee_id = employee.employee_id;
+        log.employee_name = log.employee_name || employee.full_name || "";
+        saveLogs();
+        return log.employee_id;
+      } catch (error) {
+        log.sync_note = error?.message || "No se pudo resolver funcionario para sincronizar.";
+        saveLogs();
+        return null;
+      }
+    }
+
     async function persistLogToSupabase(log) {
-      const employeeId = log.employee_id || currentEmployee?.employee_id;
+      let employeeId = log.employee_id || currentEmployee?.employee_id;
+      if (!employeeId) employeeId = await ensureEmployeeIdForLog(log);
       if (!supabaseOnline || !supabaseClient || !employeeId) {
         log.sync_status = "pendiente";
         if (!employeeId) log.sync_note = "Sin employee_id local para sincronizar automaticamente.";
@@ -1496,24 +1532,53 @@
         log.sync_status = "pendiente";
         log.sync_note = message;
         saveLogs();
-        setSupabaseStatus("error", `Registro guardado localmente. Supabase respondió: ${error.message}`);
+        setSupabaseStatus("error", `Registro guardado localmente. Supabase respondiÃ³: ${error.message}`);
         return false;
       }
     }
 
     async function syncPendingLogs() {
-      if (syncInProgress || !supabaseClient || !navigator.onLine) return;
-      const pending = logs.filter(log => log.sync_status === "pendiente" && log.employee_id);
-      if (!pending.length) return;
+      if (syncInProgress || !supabaseClient || !navigator.onLine) return { pending: 0, synced: 0, failed: 0 };
+      const pending = logs.filter(log => log.sync_status === "pendiente");
+      if (!pending.length) return { pending: 0, synced: 0, failed: 0 };
       syncInProgress = true;
       supabaseOnline = true;
+      let synced = 0;
+      let failed = 0;
       try {
         for (const log of pending) {
+          await ensureEmployeeIdForLog(log);
           await persistLogToSupabase(log);
+          if (log.sync_status === "sincronizado") synced += 1;
+          else failed += 1;
         }
         renderAll();
+        return { pending: pending.length, synced, failed };
       } finally {
         syncInProgress = false;
+      }
+    }
+
+    async function forceSyncPendingLogs() {
+      const button = $("syncPendingBtn");
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Sincronizando...";
+      }
+      try {
+        const result = await syncPendingLogs();
+        if (!result || result.pending === 0) {
+          toast("No hay marcas pendientes en este navegador.");
+        } else if (result.failed === 0) {
+          toast(`Sincronizadas ${result.synced} marcas pendientes.`);
+        } else {
+          toast(`Sincronizadas ${result.synced}. Pendientes ${result.failed}. Revise el mensaje en Ultimo resultado.`);
+        }
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Sincronizar pendientes";
+        }
       }
     }
 
@@ -1524,7 +1589,7 @@
         return null;
       }
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para guardar locales.");
+        toast("Seleccione un proyecto especÃ­fico para guardar locales.");
         return null;
       }
       const dbPayload = {
@@ -1593,7 +1658,7 @@
 
     function adminErrorMessage(error, fallback) {
       if (error?.code === "42501" || error?.status === 403 || /row-level security|permission|403/i.test(error?.message || "")) {
-        return "Sesión válida, pero sin permisos administrativos. Revise que su usuario esté en user_profiles como admin_general o manager.";
+        return "SesiÃ³n vÃ¡lida, pero sin permisos administrativos. Revise que su usuario estÃ© en user_profiles como admin_general o manager.";
       }
       return error?.message || fallback;
     }
@@ -1602,9 +1667,9 @@
       const el = $("adminAuthStatus");
       if (!el) return;
       if (adminAuthorized) {
-        el.textContent = `Sesión activa: ${adminSession.user.email} (${adminProfile.role})`;
+        el.textContent = `SesiÃ³n activa: ${adminSession.user.email} (${adminProfile.role})`;
       } else if (adminSession?.user?.email) {
-        el.textContent = `Sesión activa: ${adminSession.user.email}, pero sin perfil administrativo autorizado.`;
+        el.textContent = `SesiÃ³n activa: ${adminSession.user.email}, pero sin perfil administrativo autorizado.`;
       } else {
         el.textContent = "Ingrese con correo y clave para administrar datos.";
       }
@@ -1620,7 +1685,7 @@
 
     async function adminLogin() {
       if (!supabaseClient) {
-        toast("Supabase no está disponible.");
+        toast("Supabase no estÃ¡ disponible.");
         return;
       }
       const email = $("adminEmail").value.trim();
@@ -1639,13 +1704,13 @@
         if (adminAuthorized) {
           await loadAdminData();
           setActiveView("adminView");
-          toast("Sesión administrativa iniciada.");
+          toast("SesiÃ³n administrativa iniciada.");
         } else {
           clearAdminData();
-          toast("Sesión activa, pero sin perfil administrativo autorizado.");
+          toast("SesiÃ³n activa, pero sin perfil administrativo autorizado.");
         }
       } catch (error) {
-        toast(error?.message || "No se pudo iniciar sesión.");
+        toast(error?.message || "No se pudo iniciar sesiÃ³n.");
       } finally {
         $("adminLoginBtn").disabled = false;
       }
@@ -1661,7 +1726,7 @@
       clearAdminData();
       renderAdminAuthStatus();
       setActiveView("attendanceView");
-      toast("Sesión cerrada.");
+      toast("SesiÃ³n cerrada.");
     }
 
     function clearAdminData() {
@@ -1850,7 +1915,7 @@
         return;
       }
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para crear o editar movimientos.");
+        toast("Seleccione un proyecto especÃ­fico para crear o editar movimientos.");
         return;
       }
       const employeeId = $("manualLogEmployee").value;
@@ -1886,7 +1951,7 @@
     async function deleteManualLog(logId) {
       await ensureAdminSession();
       if (!supabaseClient || !adminAuthorized || !logId) return;
-      if (!confirm("¿Eliminar este movimiento de asistencia? Use esta opción solo para datos incorrectos o de prueba.")) return;
+      if (!confirm("Â¿Eliminar este movimiento de asistencia? Use esta opciÃ³n solo para datos incorrectos o de prueba.")) return;
       try {
         const { error } = await supabaseClient.rpc("admin_delete_attendance_log", { p_log_id: logId });
         if (error) throw error;
@@ -1950,14 +2015,14 @@
         return;
       }
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para crear o editar funcionarios.");
+        toast("Seleccione un proyecto especÃ­fico para crear o editar funcionarios.");
         return;
       }
       const cedula = $("adminEmployeeCedula").value.trim();
       const fullName = $("adminEmployeeName").value.trim();
       const siteId = $("adminEmployeeSite").value;
       if (!cedula || !fullName || !siteId) {
-        toast("Complete cédula, nombre y site asignado.");
+        toast("Complete cÃ©dula, nombre y site asignado.");
         return;
       }
       $("saveEmployeeAdminBtn").disabled = true;
@@ -1995,7 +2060,7 @@
             assignment_type: "principal",
             valid_from: todayISO(),
             status: "activo",
-            notes: "Asignación principal desde admin"
+            notes: "AsignaciÃ³n principal desde admin"
           }, { onConflict: "employee_id,site_id,assignment_type,valid_from" });
         if (assignError) throw assignError;
         toast(`Funcionario guardado: ${employee.full_name}`);
@@ -2037,7 +2102,7 @@
           <td><b>${escapeHtml(employee.full_name || "-")}</b><br><span class="subtle">${escapeHtml(employee.email || employee.phone || "")}</span></td>
           <td>${escapeHtml(employee.cedula || "-")}${employee.codigo_empresa ? `<br><span class="subtle">${escapeHtml(employee.codigo_empresa)}</span>` : ""}</td>
           <td>${escapeHtml(employee.sites?.site_name || "Sin asignar")}${employee.projects?.project_name ? `<br><span class="subtle">${escapeHtml(employee.projects.project_name)}</span>` : ""}</td>
-          <td>${escapeHtml(roleTypeLabel(employee.role_type))}<br><span class="subtle">${escapeHtml(employee.position || "")}${employee.is_backup ? " · Backup" : ""}</span></td>
+          <td>${escapeHtml(roleTypeLabel(employee.role_type))}<br><span class="subtle">${escapeHtml(employee.position || "")}${employee.is_backup ? " Â· Backup" : ""}</span></td>
           <td>${escapeHtml(employee.jornada || "-")}<br><span class="subtle">${employee.weekly_hours || "-"} h/sem</span></td>
           <td>${employee.status === "activo" ? `<span class="badge valid">Activo</span>` : `<span class="badge neutral">Inactivo</span>`}</td>
           <td>
@@ -2053,14 +2118,14 @@
         employee: "Funcionario",
         backup: "Backup",
         supervisor: "Supervisor",
-        leader: "Líder",
+        leader: "LÃ­der",
         manager: "Project Manager"
       }[value] || value || "Funcionario";
     }
 
     function editEmployee(employeeId) {
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para editar funcionarios.");
+        toast("Seleccione un proyecto especÃ­fico para editar funcionarios.");
         return;
       }
       const employee = adminEmployees.find(item => item.id === employeeId);
@@ -2078,12 +2143,12 @@
       $("adminEmployeeSupervisor").value = employee.supervisor_user_id || "";
       $("adminEmployeeIsBackup").checked = Boolean(employee.is_backup);
       $("adminEmployeeNotes").value = employee.notes || "";
-      toast("Funcionario cargado para edición.");
+      toast("Funcionario cargado para ediciÃ³n.");
     }
 
     async function toggleEmployee(employeeId) {
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para activar o desactivar funcionarios.");
+        toast("Seleccione un proyecto especÃ­fico para activar o desactivar funcionarios.");
         return;
       }
       if (!supabaseClient || !adminAuthorized) {
@@ -2109,10 +2174,10 @@
     const SCHEDULE_DAYS = [
       { dow: 1, label: "Lunes" },
       { dow: 2, label: "Martes" },
-      { dow: 3, label: "Miércoles" },
+      { dow: 3, label: "MiÃ©rcoles" },
       { dow: 4, label: "Jueves" },
       { dow: 5, label: "Viernes" },
-      { dow: 6, label: "Sábado" },
+      { dow: 6, label: "SÃ¡bado" },
       { dow: 0, label: "Domingo" }
     ];
 
@@ -2181,7 +2246,7 @@
         const schedule = adminSchedules[day.dow] || {};
         const off = Boolean(schedule.is_day_off);
         const time = (value) => value ? value.slice(0, 5) : "";
-        const hoursLabel = off ? "Libre" : (schedule.expected_hours != null ? `${schedule.expected_hours} h` : "—");
+        const hoursLabel = off ? "Libre" : (schedule.expected_hours != null ? `${schedule.expected_hours} h` : "â€”");
         return `
           <tr data-dow="${day.dow}" class="${off ? "alert-warn" : ""}">
             <td><b>${day.label}</b></td>
@@ -2213,7 +2278,7 @@
         row.querySelector(".sch-bstart").value,
         row.querySelector(".sch-bend").value
       );
-      hoursEl.textContent = hours != null ? `${hours} h` : "—";
+      hoursEl.textContent = hours != null ? `${hours} h` : "â€”";
     }
 
     async function saveSchedule() {
@@ -2223,7 +2288,7 @@
         return;
       }
       if (isAllProjectsSelected()) {
-        toast("Seleccione un proyecto específico para guardar horarios.");
+        toast("Seleccione un proyecto especÃ­fico para guardar horarios.");
         return;
       }
       const employeeId = $("scheduleEmployeeSelect").value;
@@ -2254,7 +2319,7 @@
       });
       const invalid = payload.find(item => !item.is_day_off && (!item.start_time || !item.end_time));
       if (invalid) {
-        toast("Los días laborables requieren hora de entrada y salida.");
+        toast("Los dÃ­as laborables requieren hora de entrada y salida.");
         return;
       }
       $("saveScheduleBtn").disabled = true;
@@ -2299,11 +2364,11 @@
     }
 
     function normalizeImportBool(value) {
-      return ["si", "sí", "s", "true", "1", "x"].includes(String(value ?? "").trim().toLowerCase());
+      return ["si", "sÃ­", "s", "true", "1", "x"].includes(String(value ?? "").trim().toLowerCase());
     }
 
     async function readExcelMatrix(file, preferredSheetName) {
-      if (typeof XLSX === "undefined") throw new Error("No se cargó la librería de Excel.");
+      if (typeof XLSX === "undefined") throw new Error("No se cargÃ³ la librerÃ­a de Excel.");
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array" });
       const sheet = workbook.Sheets[preferredSheetName] || workbook.Sheets[workbook.SheetNames[0]];
@@ -2340,7 +2405,7 @@
 
     function parseProjectImport(matrix) {
       const table = getImportTable(matrix, ["client_name", "client_code", "project_name", "project_code"]);
-      if (!table) { toast("No encontré cabecera: client_name, client_code, project_name, project_code."); return; }
+      if (!table) { toast("No encontrÃ© cabecera: client_name, client_code, project_name, project_code."); return; }
       projectImportRows = table.rows.map(row => {
         const clientName = String(table.get(row, "client_name") || "").trim();
         const clientCode = String(table.get(row, "client_code") || "").trim().toUpperCase();
@@ -2373,7 +2438,7 @@
           <td>${item.valid ? `<span class="badge valid">OK</span>` : `<span class="badge neutral">${escapeHtml(item.errors.join(", "))}</span>`}</td>
         </tr>
       `).join("");
-      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Validas: <b>${ok}</b> · Con error: <b>${bad}</b>. Solo se importaran las validas.</div>
+      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Validas: <b>${ok}</b> Â· Con error: <b>${bad}</b>. Solo se importaran las validas.</div>
         <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Proyecto</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
       $("runProjectImportBtn").disabled = ok === 0;
     }
@@ -2410,7 +2475,7 @@
       const file = event.target.files?.[0];
       if (!file) return;
       if (!adminProjectId) { toast("Seleccione el proyecto destino antes de importar funcionarios."); return; }
-      if (isAllProjectsSelected()) { toast("Seleccione un proyecto específico para importar funcionarios."); return; }
+      if (isAllProjectsSelected()) { toast("Seleccione un proyecto especÃ­fico para importar funcionarios."); return; }
       try {
         parseEmployeeImport(await readExcelMatrix(file, "funcionarios"));
       } catch (error) {
@@ -2420,7 +2485,7 @@
 
     function parseEmployeeImport(matrix) {
       const table = getImportTable(matrix, ["cedula", "full_name"]);
-      if (!table) { toast("No encontré cabecera: cedula y full_name."); return; }
+      if (!table) { toast("No encontrÃ© cabecera: cedula y full_name."); return; }
       employeeImportRows = table.rows.map(row => {
         const cedula = String(table.get(row, "cedula") || "").trim();
         const fullName = String(table.get(row, "full_name") || "").trim();
@@ -2449,7 +2514,7 @@
             email: String(table.get(row, "email") || "").trim() || null,
             position: String(table.get(row, "position") || "").trim() || null,
             role_type: normalizeRoleType(table.get(row, "role_type")),
-            jornada: String(table.get(row, "jornada") || "Completa-Día-Discontinua").trim(),
+            jornada: String(table.get(row, "jornada") || "Completa-DÃ­a-Discontinua").trim(),
             weekly_hours: Number.isFinite(weekly) ? weekly : 48,
             default_site_id: site.site_id,
             is_backup: normalizeImportBool(table.get(row, "is_backup")),
@@ -2479,7 +2544,7 @@
           <td>${item.valid ? `<span class="badge valid">OK</span>` : `<span class="badge neutral">${escapeHtml(item.errors.join(", "))}</span>`}</td>
         </tr>
       `).join("");
-      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Validas: <b>${ok}</b> · Con error: <b>${bad}</b>. Solo se importaran las validas.</div>
+      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Validas: <b>${ok}</b> Â· Con error: <b>${bad}</b>. Solo se importaran las validas.</div>
         <div class="table-wrap"><table><thead><tr><th>Funcionario</th><th>Site</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
       $("runEmployeeImportBtn").disabled = ok === 0;
     }
@@ -2502,7 +2567,7 @@
           assignment_type: "principal",
           valid_from: todayISO(),
           status: "activo",
-          notes: "Asignación principal desde importación"
+          notes: "AsignaciÃ³n principal desde importaciÃ³n"
         }));
         if (assignments.length) {
           const { error: assignError } = await supabaseClient
@@ -2525,7 +2590,7 @@
     async function handleScheduleImportFile(event) {
       const file = event.target.files?.[0];
       if (!file) return;
-      if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel. Revise la conexión."); return; }
+      if (typeof XLSX === "undefined") { toast("No se cargÃ³ la librerÃ­a de Excel. Revise la conexiÃ³n."); return; }
       if (!adminProjectId) { toast("Seleccione el proyecto destino antes de importar."); return; }
       try {
         const buffer = await file.arrayBuffer();
@@ -2540,7 +2605,7 @@
 
     function parseScheduleImport(matrix) {
       const headerRowIdx = matrix.findIndex(row => Array.isArray(row) && row.some(cell => String(cell || "").trim().toLowerCase() === "employee_code"));
-      if (headerRowIdx === -1) { toast("No encontré la cabecera (employee_code). Revise la plantilla."); return; }
+      if (headerRowIdx === -1) { toast("No encontrÃ© la cabecera (employee_code). Revise la plantilla."); return; }
       const headers = matrix[headerRowIdx].map(cell => String(cell || "").trim().toLowerCase());
       const col = (name) => headers.indexOf(name);
       const results = [];
@@ -2562,8 +2627,8 @@
         const expRaw = get("expected_hours");
         const employee = adminEmployees.find(item => (cedula && item.cedula === cedula) || (empCode && item.employee_code === empCode));
         const errors = [];
-        if (!employee) errors.push("funcionario no está en este proyecto");
-        if (dow == null) errors.push("día inválido");
+        if (!employee) errors.push("funcionario no estÃ¡ en este proyecto");
+        if (dow == null) errors.push("dÃ­a invÃ¡lido");
         if (!isOff && (!start || !end)) errors.push("falta entrada/salida");
         const expected = isOff ? 0 : (expRaw != null && expRaw !== "" && !isNaN(Number(expRaw)) ? Number(expRaw) : (computeExpectedHours(start, end, breakStart, breakEnd) ?? 0));
         results.push({
@@ -2604,12 +2669,12 @@
         <tr class="${item.valid ? "" : "alert-warn"}">
           <td>${escapeHtml(item.display.who)}</td>
           <td>${escapeHtml(item.display.weekday)}</td>
-          <td>${escapeHtml(item.display.effFrom)}${item.display.effTo ? " → " + escapeHtml(item.display.effTo) : ""}</td>
+          <td>${escapeHtml(item.display.effFrom)}${item.display.effTo ? " â†’ " + escapeHtml(item.display.effTo) : ""}</td>
           <td>${item.valid ? `<span class="badge valid">OK</span>` : `<span class="badge neutral">${escapeHtml(item.errors.join(", "))}</span>`}</td>
         </tr>
       `).join("");
-      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">Válidas: <b>${ok}</b> · Con error: <b>${bad}</b>. Solo se importarán las válidas.</div>
-        <div class="table-wrap"><table><thead><tr><th>Funcionario</th><th>Día</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+      wrap.innerHTML = `<div class="helper" style="margin-bottom:8px">VÃ¡lidas: <b>${ok}</b> Â· Con error: <b>${bad}</b>. Solo se importarÃ¡n las vÃ¡lidas.</div>
+        <div class="table-wrap"><table><thead><tr><th>Funcionario</th><th>DÃ­a</th><th>Vigencia</th><th>Estado</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
       if ($("runScheduleImportBtn")) $("runScheduleImportBtn").disabled = ok === 0;
     }
 
@@ -2617,7 +2682,7 @@
       await ensureAdminSession();
       if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de importar."); return; }
       const records = scheduleImportRows.filter(item => item.valid).map(item => item.record);
-      if (!records.length) { toast("No hay filas válidas para importar."); return; }
+      if (!records.length) { toast("No hay filas vÃ¡lidas para importar."); return; }
       $("runScheduleImportBtn").disabled = true;
       try {
         for (let i = 0; i < records.length; i += 200) {
@@ -2642,7 +2707,7 @@
 
     const REQUEST_TYPES = {
       permiso_horas: "Permiso por horas",
-      permiso_dia: "Permiso por día",
+      permiso_dia: "Permiso por dÃ­a",
       ausencia_justificada: "Ausencia justificada",
       vacaciones: "Vacaciones",
       incapacidad: "Incapacidad",
@@ -2679,17 +2744,17 @@
       const comments = [];
       if (request) comments.push(approvedDayComment(request));
       if (log) {
-        if (log.gps_status === "valido") comments.push("Marca válida.");
-        if (log.gps_status === "baja_precision") comments.push("Marca con baja precisión GPS.");
+        if (log.gps_status === "valido") comments.push("Marca vÃ¡lida.");
+        if (log.gps_status === "baja_precision") comments.push("Marca con baja precisiÃ³n GPS.");
         if (log.gps_status === "fuera_del_sitio") comments.push("Marca fuera del radio permitido.");
-        if (log.gps_status === "sin_permiso") comments.push("Sin permiso de ubicación GPS.");
-        if (log.gps_status === "error") comments.push("Error técnico de GPS.");
+        if (log.gps_status === "sin_permiso") comments.push("Sin permiso de ubicaciÃ³n GPS.");
+        if (log.gps_status === "error") comments.push("Error tÃ©cnico de GPS.");
         if (String(log.notes || "").toLowerCase().includes("ajuste administrativo")) comments.push("Ajuste administrativo realizado por supervisor.");
       }
       if (schedule?.missingIn) comments.push("No registra entrada.");
       if (schedule?.missingOut) comments.push("No registra salida.");
       if (schedule?.absence) comments.push(request ? "Ausencia con permiso aprobado." : "Ausencia sin justificar.");
-      if (schedule?.lateMin > 0) comments.push(`Entrada tardía de ${schedule.lateMin} minutos.`);
+      if (schedule?.lateMin > 0) comments.push(`Entrada tardÃ­a de ${schedule.lateMin} minutos.`);
       if (schedule?.earlyMin > 0) comments.push(`Salida anticipada de ${schedule.earlyMin} minutos.`);
       return [...new Set(comments.filter(Boolean))].join(" ");
     }
@@ -2764,7 +2829,7 @@
         return `
           <tr class="${req.status === "pendiente" ? "alert-warn" : ""}">
             <td><b>${escapeHtml(req.employee_name)}</b></td>
-            <td>${escapeHtml(requestTypeLabel(req.request_type))}${req.request_type === "cobertura" && req.cover_site_name ? `<br><span class="subtle">→ ${escapeHtml(req.cover_site_name)}</span>` : ""}</td>
+            <td>${escapeHtml(requestTypeLabel(req.request_type))}${req.request_type === "cobertura" && req.cover_site_name ? `<br><span class="subtle">â†’ ${escapeHtml(req.cover_site_name)}</span>` : ""}</td>
             <td>${req.start_datetime ? fmtDateTime.format(new Date(req.start_datetime)) : "-"}</td>
             <td>${req.end_datetime ? fmtDateTime.format(new Date(req.end_datetime)) : "-"}</td>
             <td><span class="subtle">${escapeHtml(req.reason || "")}</span></td>
@@ -2778,7 +2843,7 @@
       await ensureAdminSession();
       if (!supabaseClient || !adminAuthorized) { toast("Ingrese con Supabase antes de crear solicitudes."); return; }
       if (!adminProjectId) { toast("Seleccione un proyecto o Todos los proyectos."); return; }
-      if (isAllProjectsSelected()) { toast("Seleccione un proyecto específico para crear solicitudes."); return; }
+      if (isAllProjectsSelected()) { toast("Seleccione un proyecto especÃ­fico para crear solicitudes."); return; }
       const employeeId = $("requestEmployeeSelect").value;
       const type = $("requestType").value;
       const startRaw = $("requestStart").value;
@@ -2804,7 +2869,7 @@
           status: "pendiente"
         });
         if (error) throw error;
-        toast("Solicitud creada (pendiente de aprobación).");
+        toast("Solicitud creada (pendiente de aprobaciÃ³n).");
         ["requestReason", "requestComments", "requestAttachment", "requestStart", "requestEnd"].forEach(id => { if ($(id)) $(id).value = ""; });
         await loadRequests();
       } catch (error) {
@@ -2826,7 +2891,7 @@
           updated_at: new Date().toISOString()
         }).eq("id", id);
         if (error) throw error;
-        toast("Solicitud aprobada. El cálculo ya la considera.");
+        toast("Solicitud aprobada. El cÃ¡lculo ya la considera.");
         await loadRequests();
       } catch (error) {
         toast(adminErrorMessage(error, "No se pudo aprobar."));
@@ -2926,7 +2991,7 @@
         (byKey[key] = byKey[key] || []).push(log);
       });
       const days = enumerateDays(fromKey, toKey);
-      const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const dayNames = ["Domingo", "Lunes", "Martes", "MiÃ©rcoles", "Jueves", "Viernes", "SÃ¡bado"];
       const rows = [];
       adminEmployees.filter(employee => employee.status === "activo").forEach(employee => {
         days.forEach(dateKey => {
@@ -2956,9 +3021,9 @@
             supervisorName: (adminUsers.find(u => u.id === employee.supervisor_user_id)?.full_name) || "Sin supervisor",
             dateKey,
             dayLabel: `${dayNames[dow]} ${dateKey}`,
-            scheduleLabel: "—",
-            entradaLabel: entrada ? clockFromTimestamp(entrada.timestamp) : "—",
-            salidaLabel: salida ? clockFromTimestamp(salida.timestamp) : "—",
+            scheduleLabel: "â€”",
+            entradaLabel: entrada ? clockFromTimestamp(entrada.timestamp) : "â€”",
+            salidaLabel: salida ? clockFromTimestamp(salida.timestamp) : "â€”",
             tardiaMin: 0,
             earlyMin: 0,
             workedHours: null,
@@ -2971,9 +3036,9 @@
 
           if (fullDayReq) {
             if (schedule && !schedule.is_day_off) {
-              row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}–${(schedule.end_time || "").slice(0, 5)}`;
+              row.scheduleLabel = `${(schedule.start_time || "").slice(0, 5)}â€“${(schedule.end_time || "").slice(0, 5)}`;
             } else if (schedule && schedule.is_day_off) {
-              row.scheduleLabel = "Día libre";
+              row.scheduleLabel = "DÃ­a libre";
             }
             row.status = approvedDayStatus(fullDayReq);
             parts.push(approvedDayComment(fullDayReq));
@@ -2987,11 +3052,11 @@
           if (!schedule) {
             row.scheduleLabel = "Sin horario";
             row.status = "Sin horario";
-            parts.push("Funcionario sin horario definido para este día.");
+            parts.push("Funcionario sin horario definido para este dÃ­a.");
           } else if (schedule.is_day_off) {
-            row.scheduleLabel = "Día libre";
-            row.status = "Día libre (con marca)";
-            parts.push("Registra marca en día libre programado.");
+            row.scheduleLabel = "DÃ­a libre";
+            row.status = "DÃ­a libre (con marca)";
+            parts.push("Registra marca en dÃ­a libre programado.");
           } else {
             const altStart = cambioHorario?.alt_start_time || null;
             const altEnd = cambioHorario?.alt_end_time || null;
@@ -2999,7 +3064,7 @@
             const effEnd = altEnd || schedule.end_time;
             const expStart = minutesFromClock(effStart);
             const expEnd = minutesFromClock(effEnd);
-            row.scheduleLabel = `${(effStart || "").slice(0, 5)}–${(effEnd || "").slice(0, 5)}`;
+            row.scheduleLabel = `${(effStart || "").slice(0, 5)}â€“${(effEnd || "").slice(0, 5)}`;
             if (altStart || altEnd) {
               const eh = computeExpectedHours(effStart, effEnd, schedule.break_start_time, schedule.break_end_time);
               if (eh != null) row.expectedHours = eh;
@@ -3034,11 +3099,11 @@
               }
 
               const flags = [];
-              if (!entrada && salida) { flags.push("Omisión entrada"); parts.push("No registra marca de entrada."); }
-              if (entrada && !salida) { flags.push("Omisión salida"); parts.push("No registra marca de salida."); }
+              if (!entrada && salida) { flags.push("OmisiÃ³n entrada"); parts.push("No registra marca de entrada."); }
+              if (entrada && !salida) { flags.push("OmisiÃ³n salida"); parts.push("No registra marca de salida."); }
               if (row.tardiaMin > 0) {
-                flags.push("Tardía");
-                parts.push(`Registra entrada a las ${clockFromTimestamp(entrada.timestamp)}, presentando tardía de ${row.tardiaMin} minutos.`);
+                flags.push("TardÃ­a");
+                parts.push(`Registra entrada a las ${clockFromTimestamp(entrada.timestamp)}, presentando tardÃ­a de ${row.tardiaMin} minutos.`);
               } else if (entrada) {
                 parts.push(`Entrada puntual a las ${clockFromTimestamp(entrada.timestamp)}.`);
               }
@@ -3049,16 +3114,16 @@
               if (row.workedHours != null && row.expectedHours) {
                 const diff = Math.round((row.workedHours - row.expectedHours) * 100) / 100;
                 if (Math.abs(diff) >= 0.25) {
-                  parts.push(`Trabajó ${row.workedHours}h de ${row.expectedHours}h esperadas (diferencia ${diff > 0 ? "+" : ""}${diff}h).`);
+                  parts.push(`TrabajÃ³ ${row.workedHours}h de ${row.expectedHours}h esperadas (diferencia ${diff > 0 ? "+" : ""}${diff}h).`);
                 }
               }
               if (permisoHoras) parts.push("Permiso por horas aprobado.");
               if (cambioHorario) {
                 const ch = (cambioHorario.alt_start_time && cambioHorario.alt_end_time)
-                  ? ` (${cambioHorario.alt_start_time.slice(0, 5)}–${cambioHorario.alt_end_time.slice(0, 5)})` : "";
+                  ? ` (${cambioHorario.alt_start_time.slice(0, 5)}â€“${cambioHorario.alt_end_time.slice(0, 5)})` : "";
                 parts.push(`Cambio temporal de horario aprobado${ch}.`);
               }
-              row.status = flags.length ? flags.join(" · ") : (permisoHoras ? "Permiso por horas" : "OK");
+              row.status = flags.length ? flags.join(" Â· ") : (permisoHoras ? "Permiso por horas" : "OK");
             }
           }
 
@@ -3080,7 +3145,7 @@
     function statusBadge(status) {
       if (status === "OK") return `<span class="badge valid">OK</span>`;
       if (status === "Ausencia") return `<span class="badge out">Ausencia</span>`;
-      if (status.startsWith("Día libre") || status === "Sin horario") return `<span class="badge neutral">${escapeHtml(status)}</span>`;
+      if (status.startsWith("DÃ­a libre") || status === "Sin horario") return `<span class="badge neutral">${escapeHtml(status)}</span>`;
       return `<span class="badge warn">${escapeHtml(status)}</span>`;
     }
 
@@ -3112,12 +3177,12 @@
       const fueraSitio = lastCalcRows.filter(r => r.offSite).length;
       const totalHoras = Math.round(lastCalcRows.reduce((sum, r) => sum + (r.workedHours || 0), 0) * 100) / 100;
 
-      summary.innerHTML = `<div class="helper">Tardías: <b>${tardias}</b> · Ausencias: <b>${ausencias}</b> · Salidas anticipadas: <b>${tempranas}</b> · Marcas fuera de sitio: <b>${fueraSitio}</b> · Horas trabajadas: <b>${totalHoras}</b></div>`;
+      summary.innerHTML = `<div class="helper">TardÃ­as: <b>${tardias}</b> Â· Ausencias: <b>${ausencias}</b> Â· Salidas anticipadas: <b>${tempranas}</b> Â· Marcas fuera de sitio: <b>${fueraSitio}</b> Â· Horas trabajadas: <b>${totalHoras}</b></div>`;
 
       result.innerHTML = `<div class="table-wrap"><table>
         <thead><tr>
-          <th>Funcionario</th><th>Día</th><th>Horario</th><th>Entrada</th><th>Salida</th>
-          <th>Tardía</th><th>Salida ant.</th><th>Horas (trab/esp)</th><th>Estado</th><th>Comentario</th>
+          <th>Funcionario</th><th>DÃ­a</th><th>Horario</th><th>Entrada</th><th>Salida</th>
+          <th>TardÃ­a</th><th>Salida ant.</th><th>Horas (trab/esp)</th><th>Estado</th><th>Comentario</th>
         </tr></thead>
         <tbody>${lastCalcRows.map(r => `
           <tr class="${r.status === "Ausencia" ? "alert-warn" : ""}">
@@ -3126,9 +3191,9 @@
             <td>${escapeHtml(r.scheduleLabel)}</td>
             <td>${escapeHtml(r.entradaLabel)}</td>
             <td>${escapeHtml(r.salidaLabel)}</td>
-            <td>${r.tardiaMin > 0 ? escapeHtml(fmtMinutes(r.tardiaMin)) : "—"}</td>
-            <td>${r.earlyMin > 0 ? escapeHtml(fmtMinutes(r.earlyMin)) : "—"}</td>
-            <td>${r.workedHours != null ? r.workedHours : "—"}${r.expectedHours ? " / " + r.expectedHours : ""}</td>
+            <td>${r.tardiaMin > 0 ? escapeHtml(fmtMinutes(r.tardiaMin)) : "â€”"}</td>
+            <td>${r.earlyMin > 0 ? escapeHtml(fmtMinutes(r.earlyMin)) : "â€”"}</td>
+            <td>${r.workedHours != null ? r.workedHours : "â€”"}${r.expectedHours ? " / " + r.expectedHours : ""}</td>
             <td>${statusBadge(r.status)}</td>
             <td><span class="subtle">${escapeHtml(r.comment)}</span></td>
           </tr>`).join("")}</tbody>
@@ -3143,7 +3208,7 @@
     function copyCalcComments() {
       const text = lastCalcRows
         .filter(r => r.comment)
-        .map(r => `${r.employee} · ${r.dayLabel}: ${r.comment}`)
+        .map(r => `${r.employee} Â· ${r.dayLabel}: ${r.comment}`)
         .join("\n");
       if (!text) { toast("No hay comentarios para copiar."); return; }
       navigator.clipboard?.writeText(text).then(
@@ -3153,11 +3218,11 @@
     }
 
     function exportCalcExcel() {
-      if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel."); return; }
-      if (!lastCalcRows.length) { toast("Primero calculá la asistencia."); return; }
+      if (typeof XLSX === "undefined") { toast("No se cargÃ³ la librerÃ­a de Excel."); return; }
+      if (!lastCalcRows.length) { toast("Primero calculÃ¡ la asistencia."); return; }
       const fromKey = $("calcDateFrom").value || todayISO();
       const toKey = $("calcDateTo").value || fromKey;
-      const header = ["Proyecto", "Funcionario", "Cédula", "Código empresa", "Día", "Horario", "Entrada", "Salida", "Tardía (min)", "Salida ant. (min)", "Horas trab.", "Horas esp.", "Estado", "Comentario"];
+      const header = ["Proyecto", "Funcionario", "CÃ©dula", "CÃ³digo empresa", "DÃ­a", "Horario", "Entrada", "Salida", "TardÃ­a (min)", "Salida ant. (min)", "Horas trab.", "Horas esp.", "Estado", "Comentario"];
       const toRow = (r) => [r.projectName || "", r.employee, r.cedula || "", r.codigo || "", r.dayLabel, r.scheduleLabel, r.entradaLabel, r.salidaLabel, r.tardiaMin || 0, r.earlyMin || 0, r.workedHours != null ? r.workedHours : "", r.expectedHours != null ? r.expectedHours : "", r.status, r.comment];
 
       const tardias = lastCalcRows.filter(r => r.tardiaMin > 0);
@@ -3171,7 +3236,7 @@
         ["Rango", `${fromKey} a ${toKey}`],
         ["Generado", new Date().toLocaleString("es-CR")],
         [],
-        ["Tardías", tardias.length],
+        ["TardÃ­as", tardias.length],
         ["Ausencias", ausencias.length],
         ["Salidas anticipadas", tempranas.length],
         ["Marcas fuera de sitio", fueraSitio.length],
@@ -3181,7 +3246,7 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), "Resumen");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...lastCalcRows.map(toRow)]), "Detalle");
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...tardias.map(toRow)]), "Tardías");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...tardias.map(toRow)]), "TardÃ­as");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...ausencias.map(toRow)]), "Ausencias");
       XLSX.writeFile(wb, `asistencia_${fromKey}_a_${toKey}.xlsx`);
     }
@@ -3189,11 +3254,11 @@
     async function handleOfficialTemplateFile(event) {
       const file = event.target.files?.[0];
       if (!file) return;
-      if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel."); return; }
+      if (typeof XLSX === "undefined") { toast("No se cargÃ³ la librerÃ­a de Excel."); return; }
       try {
         const buffer = await file.arrayBuffer();
         officialTemplateWorkbook = XLSX.read(buffer, { type: "array", cellStyles: true });
-        toast("Plantilla oficial cargada. Se conservarán sus hojas y formatos existentes.");
+        toast("Plantilla oficial cargada. Se conservarÃ¡n sus hojas y formatos existentes.");
         if (lastCalcRows.length) $("exportOfficialTemplateBtn").style.display = "";
       } catch (error) {
         officialTemplateWorkbook = null;
@@ -3202,7 +3267,7 @@
     }
 
     function exportOfficialTemplateExcel() {
-      if (!lastCalcRows.length) { toast("Primero calculá la asistencia."); return; }
+      if (!lastCalcRows.length) { toast("Primero calculÃ¡ la asistencia."); return; }
       if (!officialTemplateWorkbook) {
         exportCalcExcel();
         return;
@@ -3252,7 +3317,7 @@
     }
 
     function buildWeeklyMovements() {
-      const dayShort = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      const dayShort = ["Dom", "Lun", "Mar", "MiÃ©", "Jue", "Vie", "SÃ¡b"];
       const byEmployee = {};
       lastCalcRows.forEach(row => {
         const key = row.cedula || row.employee;
@@ -3270,10 +3335,10 @@
     }
 
     function renderWeeklyMoves() {
-      if (!lastCalcRows.length) { toast("Primero calculá la asistencia del rango."); return; }
+      if (!lastCalcRows.length) { toast("Primero calculÃ¡ la asistencia del rango."); return; }
       weeklyMovesData = buildWeeklyMovements();
       const wrap = $("weeklyMovesResult");
-      wrap.innerHTML = `<div class="helper" style="margin:8px 0">Una fila por funcionario. Copiá el texto y pegalo en la celda <b>Observaciones (resumen movimientos)</b> de esa persona en la plantilla RH-F-27.</div>` +
+      wrap.innerHTML = `<div class="helper" style="margin:8px 0">Una fila por funcionario. CopiÃ¡ el texto y pegalo en la celda <b>Observaciones (resumen movimientos)</b> de esa persona en la plantilla RH-F-27.</div>` +
         weeklyMovesData.map((emp, i) => `
           <div class="panel" style="padding:10px;margin-bottom:8px">
             <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
@@ -3287,7 +3352,7 @@
     function aggregateBy(rows, keyFn) {
       const map = {};
       rows.forEach(r => {
-        const k = keyFn(r) || "—";
+        const k = keyFn(r) || "â€”";
         if (!map[k]) map[k] = { key: k, emps: new Set(), dias: 0, tardias: 0, ausencias: 0, tempranas: 0, fueraSitio: 0, horas: 0, ok: 0 };
         const g = map[k];
         g.emps.add(r.cedula || r.employee);
@@ -3308,7 +3373,7 @@
     }
 
     function renderDashboard() {
-      if (!lastCalcRows.length) { toast("Calculá primero un rango en Cálculo de asistencia."); return; }
+      if (!lastCalcRows.length) { toast("CalculÃ¡ primero un rango en CÃ¡lculo de asistencia."); return; }
       const rows = lastCalcRows;
       const totalDias = rows.length;
       const funcionarios = new Set(rows.map(r => r.cedula || r.employee)).size;
@@ -3329,7 +3394,7 @@
       const groupTable = (label, groups) => `
         <h3 style="margin:16px 0 6px;font-size:1rem">${label}</h3>
         <div class="table-wrap"><table>
-          <thead><tr><th>${label.includes("local") ? "Local" : "Supervisor"}</th><th>Func.</th><th>Cumpl.</th><th>Tardías</th><th>Ausencias</th><th>Sal. ant.</th><th>Fuera sitio</th><th>Horas</th></tr></thead>
+          <thead><tr><th>${label.includes("local") ? "Local" : "Supervisor"}</th><th>Func.</th><th>Cumpl.</th><th>TardÃ­as</th><th>Ausencias</th><th>Sal. ant.</th><th>Fuera sitio</th><th>Horas</th></tr></thead>
           <tbody>${groups.map(g => `<tr>
             <td><b>${escapeHtml(g.key)}</b></td>
             <td>${g.funcionarios}</td>
@@ -3351,9 +3416,9 @@
       $("dashboardResult").innerHTML = `
         <div class="metrics">
           ${tile("Funcionarios", funcionarios)}
-          ${tile("Días evaluados", totalDias)}
+          ${tile("DÃ­as evaluados", totalDias)}
           ${tile("Cumplimiento", cumplimiento + "%", cumplColor)}
-          ${tile("Tardías", tardias, tardias ? "var(--yellow)" : "")}
+          ${tile("TardÃ­as", tardias, tardias ? "var(--yellow)" : "")}
           ${tile("Ausencias", ausencias, ausencias ? "var(--red)" : "")}
           ${tile("Salidas ant.", tempranas)}
           ${tile("Fuera de sitio", fueraSitio, fueraSitio ? "var(--red)" : "")}
@@ -3361,7 +3426,7 @@
         </div>
         ${groupTable("Por local", bySite)}
         ${groupTable("Por supervisor", bySup)}
-        ${ranking("Top 5 tardías", topTardias, "tardias", "Días con tardía")}
+        ${ranking("Top 5 tardÃ­as", topTardias, "tardias", "DÃ­as con tardÃ­a")}
         ${ranking("Top 5 ausencias", topAusencias, "ausencias", "Ausencias")}
       `;
     }
@@ -3377,7 +3442,7 @@
       const projectName = $("adminProjectName").value.trim();
       const projectCode = $("adminProjectCode").value.trim().toUpperCase();
       if (!clientName || !clientCode || !projectName || !projectCode) {
-        toast("Complete cliente, código cliente, proyecto y código proyecto.");
+        toast("Complete cliente, cÃ³digo cliente, proyecto y cÃ³digo proyecto.");
         return;
       }
       $("saveProjectBtn").disabled = true;
@@ -3440,7 +3505,7 @@
         toast("Ingrese con Supabase para resolver incidencias.");
         return;
       }
-      const comment = window.prompt(status === "aprobada" ? "Comentario de aprobación" : "Comentario de rechazo") || "";
+      const comment = window.prompt(status === "aprobada" ? "Comentario de aprobaciÃ³n" : "Comentario de rechazo") || "";
       try {
         const { error } = await supabaseClient
           .from("attendance_incidents")
@@ -3616,14 +3681,10 @@
       $("employeeName").value = "";
       $("siteSearch").value = "";
       $("notes").value = "";
-      const syncText = log.sync_status === "pendiente" ? `<div class="subtle">Pendiente de sincronizar con Supabase.</div>` : "";
-      const gpsAction = canAttachGps(log)
-        ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}" style="margin-top:10px">Agregar ubicación</button>`
-        : "";
       $("lastResult").innerHTML = `
         <span class="badge neutral">Pendiente</span>
-        <div class="status-title">Aún no hay marca en esta sesión</div>
-        <div class="subtle">La hora se registra automáticamente y no puede editarse manualmente.</div>
+        <div class="status-title">AÃºn no hay marca en esta sesiÃ³n</div>
+        <div class="subtle">La hora se registra automÃ¡ticamente y no puede editarse manualmente.</div>
       `;
       renderAll();
       toast("Datos locales del funcionario borrados de este navegador.");
@@ -3661,13 +3722,13 @@
       const site = findSelectedSite();
       const el = $("selectedSiteInfo");
       if (!site) {
-        el.innerHTML = `<div class="status-title">Detección GPS opcional</div><div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicación, podrá agregarla al registro.</div>`;
+        el.innerHTML = `<div class="status-title">DetecciÃ³n GPS opcional</div><div class="subtle">La entrada puede guardarse sin GPS. Si luego autoriza ubicaciÃ³n, podrÃ¡ agregarla al registro.</div>`;
         return;
       }
       el.innerHTML = `
         <span class="badge valid">Activo</span>
         <div class="status-title">${escapeHtml(site.site_name)}</div>
-        <div class="subtle">${escapeHtml(site.provincia)}, ${escapeHtml(site.canton)} · Radio ${site.radio_metros} m</div>
+        <div class="subtle">${escapeHtml(site.provincia)}, ${escapeHtml(site.canton)} Â· Radio ${site.radio_metros} m</div>
         <div class="subtle">${escapeHtml(site.direccion)}</div>
       `;
     }
@@ -3676,24 +3737,24 @@
       const el = $("gpsPermissionInfo");
       if (!el) return "unknown";
       if (!navigator.geolocation) {
-        el.innerHTML = `<span class="badge out">GPS no disponible</span><div class="status-title">Este navegador no permite geolocalizaciÃ³n.</div>`;
+        el.innerHTML = `<span class="badge out">GPS no disponible</span><div class="status-title">Este navegador no permite geolocalizaciÃƒÂ³n.</div>`;
         return "unsupported";
       }
       try {
         if (!navigator.permissions?.query) {
-          el.innerHTML = `<span class="badge neutral">GPS pendiente</span><div class="status-title">Se solicitarÃ¡ ubicaciÃ³n al marcar.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Probar ubicaciÃ³n</button>`;
+          el.innerHTML = `<span class="badge neutral">GPS pendiente</span><div class="status-title">Se solicitarÃƒÂ¡ ubicaciÃƒÂ³n al marcar.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Probar ubicaciÃƒÂ³n</button>`;
           $("gpsPermissionBtn").addEventListener("click", requestGpsPermission);
           return "unknown";
         }
         const status = await navigator.permissions.query({ name: "geolocation" });
         const render = () => {
           if (status.state === "granted") {
-            el.innerHTML = `<span class="badge valid">GPS permitido</span><div class="status-title">UbicaciÃ³n activa para validar el local.</div>`;
+            el.innerHTML = `<span class="badge valid">GPS permitido</span><div class="status-title">UbicaciÃƒÂ³n activa para validar el local.</div>`;
           } else if (status.state === "prompt") {
-            el.innerHTML = `<span class="badge warn">GPS pendiente</span><div class="status-title">El navegador pedirÃ¡ permiso de ubicaciÃ³n.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Activar ubicaciÃ³n</button>`;
+            el.innerHTML = `<span class="badge warn">GPS pendiente</span><div class="status-title">El navegador pedirÃƒÂ¡ permiso de ubicaciÃƒÂ³n.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Activar ubicaciÃƒÂ³n</button>`;
             $("gpsPermissionBtn").addEventListener("click", requestGpsPermission);
           } else {
-            el.innerHTML = `<span class="badge out">GPS bloqueado</span><div class="status-title">Active la ubicaciÃ³n en el navegador para esta pÃ¡gina.</div><div class="subtle">En Chrome/Edge: candado junto a la direcciÃ³n > Permisos del sitio > UbicaciÃ³n > Permitir.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Volver a probar</button>`;
+            el.innerHTML = `<span class="badge out">GPS bloqueado</span><div class="status-title">Active la ubicaciÃƒÂ³n en el navegador para esta pÃƒÂ¡gina.</div><div class="subtle">En Chrome/Edge: candado junto a la direcciÃƒÂ³n > Permisos del sitio > UbicaciÃƒÂ³n > Permitir.</div><button id="gpsPermissionBtn" class="btn ghost" type="button" style="margin-top:10px">Volver a probar</button>`;
             $("gpsPermissionBtn").addEventListener("click", requestGpsPermission);
           }
         };
@@ -3712,9 +3773,9 @@
       } catch {}
       try {
         await getCurrentPosition();
-        toast("UbicaciÃ³n permitida.");
+        toast("UbicaciÃƒÂ³n permitida.");
       } catch (error) {
-        toast(error?.code === 1 ? "UbicaciÃ³n bloqueada. Revise permisos del navegador." : "No se pudo obtener ubicaciÃ³n.");
+        toast(error?.code === 1 ? "UbicaciÃƒÂ³n bloqueada. Revise permisos del navegador." : "No se pudo obtener ubicaciÃƒÂ³n.");
       } finally {
         await refreshGpsPermissionStatus();
       }
@@ -3723,7 +3784,7 @@
     function validateAttendanceForm() {
       const cedula = $("employeeCode").value.trim();
       if (!cedula) {
-        toast("Ingrese la cédula del funcionario.");
+        toast("Ingrese la cÃ©dula del funcionario.");
         $("employeeCode").focus();
         return null;
       }
@@ -3745,7 +3806,7 @@
     function getCurrentPosition() {
       return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
-          reject({ code: "UNSUPPORTED", message: "Geolocalización no disponible" });
+          reject({ code: "UNSUPPORTED", message: "GeolocalizaciÃ³n no disponible" });
           return;
         }
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -3828,7 +3889,7 @@
         const synced = await persistLogToSupabase(baseLog);
         renderLastResult(baseLog);
         if (!synced) toast("Marca pendiente de enviar a Supabase.");
-        const accuracyText = baseLog.gps_status === "baja_precision" ? " Precisión GPS baja." : "";
+        const accuracyText = baseLog.gps_status === "baja_precision" ? " PrecisiÃ³n GPS baja." : "";
         const autoText = ` Local detectado: ${baseLog.site_name}.`;
         const syncText = synced ? "" : " Pendiente de enviar a Supabase.";
         toast(`${checkType === "entrada" ? "Entrada" : "Salida"} registrada.${autoText}${accuracyText}${syncText}`);
@@ -3838,12 +3899,12 @@
           toast("Registro duplicado: espere al menos 2 minutos para marcar otra vez.");
           return;
         }
-        baseLog.notes = [baseLog.notes, error?.message || "No se pudo obtener ubicación"].filter(Boolean).join(" | ");
+        baseLog.notes = [baseLog.notes, error?.message || "No se pudo obtener ubicaciÃ³n"].filter(Boolean).join(" | ");
         logs.unshift(baseLog);
         saveLogs();
         const synced = await persistLogToSupabase(baseLog);
         renderLastResult(baseLog);
-        toast(baseLog.gps_status === "sin_permiso" ? "Marca registrada sin permiso de ubicación." : "Marca registrada con error de GPS.");
+        toast(baseLog.gps_status === "sin_permiso" ? "Marca registrada sin permiso de ubicaciÃ³n." : "Marca registrada con error de GPS.");
       } finally {
         setButtonsLoading(false);
         renderAll();
@@ -3859,8 +3920,8 @@
 
     function gpsBadge(status) {
       const map = {
-        valido: ["valid", "Ubicación válida"],
-        baja_precision: ["warn", "Precisión baja"],
+        valido: ["valid", "UbicaciÃ³n vÃ¡lida"],
+        baja_precision: ["warn", "PrecisiÃ³n baja"],
         fuera_del_sitio: ["out", "Fuera del sitio"],
         sin_permiso: ["warn", "Sin permiso GPS"],
         error: ["warn", "Error GPS"]
@@ -3872,13 +3933,19 @@
     function renderLastResult(log) {
       const precision = log.accuracy_meters == null ? "No disponible" : `${log.accuracy_meters} m`;
       const distance = log.distance_to_site_meters == null ? "No disponible" : `${log.distance_to_site_meters} m`;
-      const lowAccuracy = log.gps_status === "baja_precision" ? `<div class="badge warn">Precisión baja</div>` : "";
+      const lowAccuracy = log.gps_status === "baja_precision" ? `<div class="badge warn">PrecisiÃ³n baja</div>` : "";
+      const syncText = log.sync_status === "pendiente"
+        ? `<div class="subtle">Pendiente de sincronizar con Supabase.${log.sync_note ? ` ${escapeHtml(log.sync_note)}` : ""}</div>`
+        : "";
+      const gpsAction = canAttachGps(log)
+        ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}" style="margin-top:10px">Agregar ubicacion</button>`
+        : "";
       $("lastResult").innerHTML = `
         ${gpsBadge(log.gps_status)}
         ${lowAccuracy}
         <div class="status-title">${log.check_type === "entrada" ? "Entrada" : "Salida"} registrada para ${escapeHtml(log.employee_name)}</div>
-        <div class="subtle">${escapeHtml(log.site_name)} · ${fmtDateTime.format(new Date(log.timestamp))}</div>
-        <div class="subtle">Distancia al local: ${distance} · Precisión: ${precision}</div>
+        <div class="subtle">${escapeHtml(log.site_name)} Â· ${fmtDateTime.format(new Date(log.timestamp))}</div>
+        <div class="subtle">Distancia al local: ${distance} Â· PrecisiÃ³n: ${precision}</div>
         ${log.gps_captured_at ? `<div class="subtle">GPS agregado posteriormente: ${fmtDateTime.format(new Date(log.gps_captured_at))}</div>` : ""}
         ${syncText}
         ${gpsAction}
@@ -3911,7 +3978,7 @@
     async function attachGpsToLog(logId) {
       const log = logs.find(item => String(item.id) === String(logId));
       if (!canAttachGps(log)) {
-        toast("Este registro ya tiene ubicación o no es una entrada pendiente.");
+        toast("Este registro ya tiene ubicaciÃ³n o no es una entrada pendiente.");
         return;
       }
       try {
@@ -3953,9 +4020,9 @@
         saveLogs();
         renderLastResult(log);
         renderAll();
-        toast("Ubicación agregada al registro.");
+        toast("UbicaciÃ³n agregada al registro.");
       } catch (error) {
-        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo agregar la ubicación.");
+        toast(error?.code === 1 ? "No se concediÃ³ permiso de ubicaciÃ³n." : "No se pudo agregar la ubicaciÃ³n.");
       }
     }
 
@@ -3994,13 +4061,13 @@
         const accuracy = log.accuracy_meters == null ? "-" : `${log.accuracy_meters} m`;
         const pendingSync = log.sync_status === "pendiente" ? `<br><span class="subtle">Pendiente Supabase</span>` : "";
         const gpsButton = canAttachGps(log)
-          ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}" style="margin-top:6px">Agregar GPS</button>`
+          ? `<button class="btn small blue" data-attach-gps="${escapeHtml(log.id)}">Agregar ubicacion</button>`
           : "";
         return `
           <tr class="${alertClass}">
             <td>${fmtDateTime.format(new Date(log.timestamp))}</td>
             <td><b>${escapeHtml(log.employee_name)}</b><br><span class="subtle">${escapeHtml(log.employee_code || "-")}</span></td>
-            <td>${escapeHtml(log.site_name)}<br><span class="subtle">${escapeHtml(log.provincia)}, ${escapeHtml(log.canton)}${log.project_name ? " · " + escapeHtml(log.project_name) : ""}</span></td>
+            <td>${escapeHtml(log.site_name)}<br><span class="subtle">${escapeHtml(log.provincia)}, ${escapeHtml(log.canton)}${log.project_name ? " Â· " + escapeHtml(log.project_name) : ""}</span></td>
             <td>${escapeHtml(log.check_type)}</td>
             <td>${gpsBadge(log.gps_status)}${pendingSync}</td>
             <td>${distance}</td>
@@ -4074,7 +4141,7 @@
         fuera_del_sitio: "Fuera del sitio",
         sin_permiso: "Sin permiso GPS",
         error: "Error GPS",
-        precision_baja: "Precisión baja"
+        precision_baja: "PrecisiÃ³n baja"
       }[value] || value;
     }
 
@@ -4114,7 +4181,7 @@
             ${escapeHtml(site.site_id)}<br>
             ${escapeHtml(site.provincia)}, ${escapeHtml(site.canton)}<br>
             ${escapeHtml(site.direccion)}<br>
-            ${site.latitud}, ${site.longitud} · ${site.radio_metros} m
+            ${site.latitud}, ${site.longitud} Â· ${site.radio_metros} m
           </div>
           <div class="site-actions">
             <button class="btn small ghost" data-edit-site="${escapeHtml(site.site_id)}">Editar</button>
@@ -4135,7 +4202,7 @@
       const radio = Number($("siteRadius").value);
 
       if (!siteName || !provincia || !canton || !direccion || !Number.isFinite(latitud) || !Number.isFinite(longitud) || !radio) {
-        toast("Complete nombre, provincia, cantón, dirección, coordenadas y radio.");
+        toast("Complete nombre, provincia, cantÃ³n, direcciÃ³n, coordenadas y radio.");
         return;
       }
 
@@ -4218,12 +4285,12 @@
         const position = await getCurrentPosition();
         $("siteLat").value = position.coords.latitude.toFixed(6);
         $("siteLng").value = position.coords.longitude.toFixed(6);
-        toast(`Ubicación capturada. Precisión aproximada: ${Math.round(position.coords.accuracy)} m.`);
+        toast(`UbicaciÃ³n capturada. PrecisiÃ³n aproximada: ${Math.round(position.coords.accuracy)} m.`);
       } catch (error) {
-        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo capturar la ubicación.");
+        toast(error?.code === 1 ? "No se concediÃ³ permiso de ubicaciÃ³n." : "No se pudo capturar la ubicaciÃ³n.");
       } finally {
         $("captureSiteLocationBtn").disabled = false;
-        $("captureSiteLocationBtn").textContent = "Capturar ubicación actual";
+        $("captureSiteLocationBtn").textContent = "Capturar ubicaciÃ³n actual";
       }
     }
 
@@ -4246,13 +4313,13 @@
         $("siteSearch").value = `${detected.site.site_name} | ${detected.site.provincia}, ${detected.site.canton} | ${detected.site.site_id}`;
         renderSelectedSiteInfo();
         const status = detected.distance <= Number(detected.site.radio_metros) ? "dentro del radio" : "fuera del radio";
-        const accuracyText = Number.isFinite(accuracy) ? ` Precisión: ${Math.round(accuracy)} m.` : "";
+        const accuracyText = Number.isFinite(accuracy) ? ` PrecisiÃ³n: ${Math.round(accuracy)} m.` : "";
         toast(`Local detectado: ${detected.site.site_name}, a ${Math.round(detected.distance)} m (${status}).${accuracyText}`);
       } catch (error) {
-        toast(error?.code === 1 ? "No se concedió permiso de ubicación." : "No se pudo detectar el local.");
+        toast(error?.code === 1 ? "No se concediÃ³ permiso de ubicaciÃ³n." : "No se pudo detectar el local.");
       } finally {
         $("detectSiteBtn").disabled = false;
-        $("detectSiteBtn").textContent = "Probar detección GPS / agregar ubicación";
+        $("detectSiteBtn").textContent = "Probar detecciÃ³n GPS / agregar ubicaciÃ³n";
       }
     }
 
@@ -4322,6 +4389,7 @@
       $("checkInBtn").addEventListener("click", () => registerAttendance("entrada"));
       $("checkOutBtn").addEventListener("click", () => registerAttendance("salida"));
       $("detectSiteBtn").addEventListener("click", detectCurrentSite);
+      $("syncPendingBtn").addEventListener("click", forceSyncPendingLogs);
       $("lastResult").addEventListener("click", (event) => {
         const logId = event.target.dataset.attachGps;
         if (logId) attachGpsToLog(logId);
