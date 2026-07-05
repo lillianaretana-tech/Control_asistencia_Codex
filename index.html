@@ -1022,7 +1022,7 @@
               <button id="loadDemoBtn" class="btn ghost">Cargar demo local</button>
               <button id="clearDemoBtn" class="btn danger">Limpiar datos locales demo</button>
             </div>
-            <div id="alertScopeHelp" class="helper" style="margin-top:8px">Las alertas se envían solo a las reglas que coincidan con el proyecto/local de la marca. Deje el correo respaldo vacío si no desea copia global.</div>
+            <div id="alertScopeHelp" class="helper" style="margin-top:8px">Las reglas se guardan para que, cuando se conecte el envío de correos, cada incidencia avise solo al responsable del proyecto/local correspondiente.</div>
             <div class="helper" style="margin-top:8px">La operación real usa Supabase. Solo esta configuración queda como respaldo local si la tabla settings no existe. El demo local no se mezcla con datos reales.</div>
           </div>
         </section>
@@ -1230,6 +1230,25 @@
       MAKE_WEBHOOK_URL = appSettings.make_webhook_url || "";
     }
 
+    async function loadSettingsFromSupabase() {
+      if (!supabaseClient) return false;
+      try {
+        const { data, error } = await supabaseClient
+          .from("settings")
+          .select("value")
+          .eq("key", "app_config")
+          .maybeSingle();
+        if (error) throw error;
+        if (!data?.value || typeof data.value !== "object") return false;
+        appSettings = { ...DEFAULT_SETTINGS, ...loadSettings(), ...data.value };
+        saveSettingsLocal();
+        renderSettingsForm();
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     function lowAccuracyLimit() {
       return Number(appSettings.low_accuracy_meters || DEFAULT_SETTINGS.low_accuracy_meters);
     }
@@ -1282,12 +1301,7 @@
       if (siteWrap) siteWrap.style.display = scope === "site" ? "" : "none";
       const help = $("alertScopeHelp");
       if (help) {
-        help.textContent = {
-          global: "Global envía alertas de todos los proyectos al correo respaldo y al correo adicional, si se define.",
-          project: "Proyecto activo envía solo alertas del proyecto seleccionado.",
-          site: "Local activo envía solo alertas del local seleccionado.",
-          role: "Según usuario/rol deja que Make o el proceso de alertas enrute por perfil, proyecto y local."
-        }[scope] || "";
+        help.textContent = "Las reglas se guardan para que, cuando se conecte el envío de correos, cada incidencia avise solo al responsable del proyecto/local correspondiente.";
       }
     }
 
@@ -1423,8 +1437,9 @@
             value: appSettings,
             updated_at: new Date().toISOString()
           }, { onConflict: "key" });
-        } catch {
-          // localStorage remains the fallback when the optional settings table does not exist.
+        } catch (error) {
+          toast(`Configuración guardada solo en este navegador. Supabase respondió: ${error.message}`);
+          return;
         }
       }
       toast("Configuración guardada.");
@@ -1648,6 +1663,7 @@
         return;
       }
       supabaseOnline = true;
+      await loadSettingsFromSupabase();
       setSupabaseStatus("online", "Supabase conectado. Ingrese la cédula para cargar funcionario y sites asignados.");
       syncPendingLogs();
     }
@@ -1910,6 +1926,7 @@
       const { data } = await supabaseClient.auth.getSession();
       adminSession = data?.session || null;
       await loadAdminProfile();
+      await loadSettingsFromSupabase();
       renderAdminAuthStatus();
       if (adminAuthorized) await loadAdminData();
       return adminSession;
@@ -1990,6 +2007,7 @@
         if (error) throw error;
         adminSession = data.session;
         await loadAdminProfile();
+        await loadSettingsFromSupabase();
         renderAdminAuthStatus();
         if (adminAuthorized) {
           await loadAdminData();
