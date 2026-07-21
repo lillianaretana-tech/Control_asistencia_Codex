@@ -906,9 +906,13 @@
               <label>Tipo<select id="requestType">
                 <option value="permiso_horas">Permiso por horas</option>
                 <option value="permiso_dia">Permiso por día</option>
+                <option value="permiso_sin_goce">Permiso sin goce (PSG)</option>
+                <option value="permiso_duelo">Permiso por duelo (PPD)</option>
+                <option value="permiso_preaviso">Permiso por preaviso (PPP)</option>
                 <option value="ausencia_justificada">Ausencia justificada</option>
                 <option value="vacaciones">Vacaciones</option>
-                <option value="incapacidad">Incapacidad</option>
+                <option value="incapacidad">Incapacidad CCSS</option>
+                <option value="incapacidad_ins">Incapacidad INS</option>
                 <option value="cobertura">Cobertura en otro local</option>
                 <option value="cambio_horario">Cambio temporal de horario</option>
               </select></label>
@@ -948,13 +952,16 @@
             <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">
               <button id="copyCalcCommentsBtn" class="btn small ghost" style="display:none">Copiar comentarios</button>
               <button id="exportCalcExcelBtn" class="btn small ghost" style="display:none">Exportar a Excel</button>
-              <button id="exportOfficialTemplateBtn" class="btn small ghost" style="display:none">Exportar con plantilla oficial</button>
-              <button id="genWeeklyMovesBtn" class="btn small blue" style="display:none">Resumen para RH-F-27</button>
+              <button id="exportOfficialTemplateBtn" class="btn small ghost" style="display:none">Exportar plantilla oficial (proyecto actual)</button>
+              <button id="generateAllTemplatesBtn" class="btn small blue" style="display:none">Generar 1 archivo por proyecto (todos)</button>
+              <button id="genWeeklyMovesBtn" class="btn small ghost" style="display:none">Resumen para RH-F-27</button>
             </div>
             <div class="status-box" style="margin-top:10px">
-              <div class="status-title">Plantilla oficial RRHH</div>
-              <div class="helper">Opcional: cargue la plantilla .xlsx oficial. La app agrega una hoja de datos sin alterar hojas, formatos o fórmulas existentes.</div>
+              <div class="status-title">Plantilla oficial RRHH (RH-F-27)</div>
+              <div class="helper">Cargue una sola vez la plantilla .xlsx oficial; el navegador la recuerda para las próximas veces. "Generar 1 archivo por proyecto" recorre todos los proyectos del catálogo y descarga un único ZIP con un RH-F-27 lleno por cada uno, listo para adjuntar y enviar.</div>
               <label style="margin-top:8px">Archivo plantilla<input id="officialTemplateFile" type="file" accept=".xlsx,.xls"></label>
+              <div id="officialTemplateStatus" class="helper" style="margin-top:6px"></div>
+              <button id="clearOfficialTemplateBtn" class="btn small ghost" style="display:none;margin-top:6px">Quitar plantilla guardada</button>
             </div>
             <div id="attendanceCalcResult" style="margin-top:12px"><div class="empty">Elija el rango de fechas y presione Calcular.</div></div>
             <div id="weeklyMovesResult" style="margin-top:12px"></div>
@@ -1082,6 +1089,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const STORAGE = {
@@ -1117,6 +1125,7 @@
     let adminAuthorized = false;
     let syncInProgress = false;
     let officialTemplateWorkbook = null;
+    let officialTemplateBuffer = null;
     const ALL_PROJECTS_VALUE = "__ALL_PROJECTS__";
     const DUPLICATE_WINDOW_MS = 2 * 60 * 1000;
     const DEFAULT_SETTINGS = {
@@ -3056,7 +3065,11 @@
       permiso_dia: "Permiso por día",
       ausencia_justificada: "Ausencia justificada",
       vacaciones: "Vacaciones",
-      incapacidad: "Incapacidad",
+      incapacidad: "Incapacidad CCSS",
+      incapacidad_ins: "Incapacidad INS",
+      permiso_sin_goce: "Permiso sin goce",
+      permiso_duelo: "Permiso por duelo",
+      permiso_preaviso: "Permiso por preaviso",
       cobertura: "Cobertura en otro local",
       cambio_horario: "Cambio temporal de horario"
     };
@@ -3072,6 +3085,9 @@
       incapacidad_ins: "INS",
       incapacidad: "CCSS",
       vacaciones: "VAC",
+      permiso_sin_goce: "PSG",
+      permiso_duelo: "PPD",
+      permiso_preaviso: "PPP",
       cobertura: "COB",
       cambio_horario: "CH",
       sin_gps: "SIN_GPS",
@@ -3086,7 +3102,11 @@
       return {
         vacaciones: "Vacaciones",
         incapacidad: "CCSS",
+        incapacidad_ins: "INS",
         permiso_dia: "PP",
+        permiso_sin_goce: "PSG",
+        permiso_duelo: "PPD",
+        permiso_preaviso: "PPP",
         ausencia_justificada: "AJ",
         cobertura: "Cobertura"
       }[req.request_type] || "Aprobado";
@@ -3096,6 +3116,10 @@
       switch (req.request_type) {
         case "vacaciones": return "VAC";
         case "incapacidad": return "CCSS";
+        case "incapacidad_ins": return "INS";
+        case "permiso_sin_goce": return "PSG";
+        case "permiso_duelo": return "PPD";
+        case "permiso_preaviso": return "PPP";
         case "permiso_dia": return "PP";
         case "permiso_horas": return "PP";
         case "ausencia_justificada": return "AJ";
@@ -3328,6 +3352,280 @@
       return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
     }
 
+    // ---- Plantilla oficial RH-F-27: catálogo de jornadas y layout de bloques ----
+    const JORNADA_CATALOG = [
+      { key: "completa-dia-discontinua", label: "Completa-Día-Discontinua (Columna F=48)", block: "DIA" },
+      { key: "completa-dia-continua", label: "Completa-Día-Continua (Columna H=48)", block: "DIA" },
+      { key: "parcial-dia-discontinua", label: "Parcial-Día-Discontinua (Columna F=42)", block: "DIA" },
+      { key: "completa-mixta-discontinua", label: "Completa-Mixta-Discontinua (Columna F=42)", block: "MIXTA" },
+      { key: "completa-mixta-continua", label: "Completa-Mixta-Continua (Columna H=42)", block: "MIXTA" },
+      { key: "parcial-mixta-discontinua", label: "Parcial-Mixta-Discontinua (Columna F=36:45)", block: "MIXTA" },
+      { key: "completa-noche-discontinua", label: "Completa-Noche-Discontinua (Columna F=36)", block: "NOCHE" },
+      { key: "completa-noche-continua", label: "Completa-Noche-Continua (Columna H=36)", block: "NOCHE" },
+      { key: "parcial-noche-discontinua", label: "Parcial-Noche-Discontinua (Columna F=31:50)", block: "NOCHE" },
+      { key: "parcial-noche-discontinua-especial", label: "Parcial-Noche-Discontinua (Columna F=30:00) Autorización Esp. ", block: "NOCHE" }
+    ];
+    const BLOCK_LAYOUT = {
+      DIA: { firstRow: 10, maxRows: 20 },
+      MIXTA: { firstRow: 32, maxRows: 20 },
+      NOCHE: { firstRow: 54, maxRows: 20 }
+    };
+    // Columnas Entrada/Salida por día, Lunes a Domingo (según encabezados fila 6-7 de RH-F-27)
+    const DAY_COLS = [["I", "J"], ["L", "M"], ["O", "P"], ["R", "S"], ["U", "V"], ["X", "Y"], ["AA", "AB"]];
+
+    function normalizeJornadaKey(text) {
+      const t = String(text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const tipo = t.includes("mixta") ? "mixta" : t.includes("noche") ? "noche" : "dia";
+      const parcial = t.includes("parcial") ? "parcial" : "completa";
+      const especial = t.includes("especial") || t.includes("autorizacion");
+      if (parcial === "parcial" && especial) return "parcial-noche-discontinua-especial";
+      const continua = (t.includes("continua") && !t.includes("discontinua")) ? "continua" : "discontinua";
+      return `${parcial}-${tipo}-${continua}`;
+    }
+
+    function matchJornada(text) {
+      const key = normalizeJornadaKey(text);
+      return JORNADA_CATALOG.find(j => j.key === key) || JORNADA_CATALOG[0];
+    }
+
+    function parseClockLabel(label) {
+      if (!label || label === "—") return null;
+      const [h, m] = String(label).split(":").map(Number);
+      if (Number.isNaN(h)) return null;
+      return { h, m: m || 0 };
+    }
+
+    function setTextCell(ws, ref, text) {
+      if (text === null || text === undefined || text === "") return;
+      ws[ref] = { t: "s", v: String(text) };
+    }
+
+    function setTimeCell(ws, ref, dateObj) {
+      ws[ref] = { t: "d", v: dateObj, z: "hh:mm" };
+    }
+
+    function slug(text) {
+      return String(text || "proyecto")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "proyecto";
+    }
+
+    // Solo estos códigos van a la columna Observaciones de RH-F-27; el resto
+    // (Sin entrada, Salida anticipada, FUERA_SITIO, SIN_GPS, CH, COB, GPS…, VAC)
+    // se queda en el sistema, no hace falta para la planilla.
+    function extractPayrollCodes(comment) {
+      if (!comment) return [];
+      const text = String(comment);
+      const codes = [];
+      const add = (label) => { if (!codes.includes(label)) codes.push(label); };
+      const tMatch = text.match(/\bT\s+\d+min\b/);
+      if (tMatch) add(tMatch[0]);
+      const heMatch = text.match(/\bHE\s*\+?[\d.]+h\b/);
+      if (heMatch) add(heMatch[0]);
+      if (/\bAI\b/.test(text)) add("AI");
+      if (/\bAJ\b/.test(text)) add("AJ");
+      if (/\bPP\b/.test(text)) add("PP");
+      if (/\bCCSS\b/.test(text)) add("CCSS");
+      if (/\bINS\b/.test(text)) add("INS");
+      if (/\bVAC\b/.test(text)) add("VAC");
+      if (/\bPSG\b/.test(text)) add("PSG");
+      if (/\bPPD\b/.test(text)) add("PPD");
+      if (/\bPPP\b/.test(text)) add("PPP");
+      return codes;
+    }
+
+    function buildEmployeeWeekMap(rows) {
+      const map = {};
+      rows.forEach(r => {
+        const key = r.cedula || r.employee;
+        if (!map[key]) {
+          map[key] = {
+            nombre: r.employee,
+            cedula: r.cedula || "",
+            puesto: r.position || "Misc.",
+            jornada: r.jornada || "",
+            days: {},
+            obsParts: []
+          };
+        }
+        map[key].days[r.dateKey] = r;
+        if (r.status !== "OK" && r.comment) {
+          const codes = extractPayrollCodes(r.comment);
+          if (codes.length) {
+            const d = new Date(r.dateKey + "T12:00:00");
+            const dayShort = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"][d.getDay()];
+            map[key].obsParts.push(`${dayShort} ${Number(r.dateKey.slice(8, 10))}: ${codes.join(" ")}`);
+          }
+        }
+      });
+      return map;
+    }
+
+    // Excel guarda fechas/horas como número de serie desde 1899-12-30 (bug del año 1900 incluido)
+    function excelSerialFromDate(d) {
+      const epoch = Date.UTC(1899, 11, 30);
+      const ms = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()) - epoch;
+      return ms / 86400000;
+    }
+
+    // Arma la lista de celdas a escribir (ref, tipo, valor) sin tocar el resto del archivo
+    function buildCellUpdates(weekMap, projectLabel, weekDates) {
+      const updates = [];
+      if (projectLabel) updates.push({ ref: "L3", type: "str", value: projectLabel });
+
+      const buckets = { DIA: [], MIXTA: [], NOCHE: [] };
+      Object.values(weekMap).forEach(emp => {
+        const match = matchJornada(emp.jornada);
+        buckets[match.block].push({ ...emp, jornadaLabel: match.label });
+      });
+
+      Object.entries(BLOCK_LAYOUT).forEach(([block, layout]) => {
+        const list = buckets[block];
+        list.slice(0, layout.maxRows).forEach((emp, i) => {
+          const row = layout.firstRow + i;
+          updates.push({ ref: `C${row}`, type: "str", value: emp.puesto });
+          updates.push({ ref: `D${row}`, type: "str", value: emp.nombre });
+          updates.push({ ref: `E${row}`, type: "str", value: emp.jornadaLabel });
+          weekDates.forEach((dateKey, dowIdx) => {
+            const cols = DAY_COLS[dowIdx];
+            if (!cols) return;
+            const [colIn, colOut] = cols;
+            const dayRow = emp.days[dateKey];
+            if (!dayRow) return;
+            const inTime = parseClockLabel(dayRow.entradaLabel);
+            const outTime = parseClockLabel(dayRow.salidaLabel);
+            if (inTime) {
+              const d = new Date(dateKey + "T00:00:00");
+              d.setHours(inTime.h, inTime.m, 0, 0);
+              updates.push({ ref: `${colIn}${row}`, type: "num", value: excelSerialFromDate(d) });
+            }
+            if (outTime) {
+              const d = new Date(dateKey + "T00:00:00");
+              d.setHours(outTime.h, outTime.m, 0, 0);
+              if (inTime && (outTime.h < inTime.h || (outTime.h === inTime.h && outTime.m < inTime.m))) {
+                d.setDate(d.getDate() + 1);
+              }
+              updates.push({ ref: `${colOut}${row}`, type: "num", value: excelSerialFromDate(d) });
+            }
+          });
+          const obs = emp.obsParts.length ? emp.obsParts.join(" | ") : "Sin movimientos en la semana.";
+          updates.push({ ref: `AL${row}`, type: "str", value: obs });
+        });
+        // Limpia las filas sobrantes del bloque (pueden traer nombres de ejemplo de la plantilla)
+        for (let i = list.length; i < layout.maxRows; i++) {
+          const row = layout.firstRow + i;
+          ["C", "D", "E", "AL"].forEach(col => updates.push({ ref: `${col}${row}`, type: "clear" }));
+          DAY_COLS.forEach(([colIn, colOut]) => {
+            updates.push({ ref: `${colIn}${row}`, type: "clear" });
+            updates.push({ ref: `${colOut}${row}`, type: "clear" });
+          });
+        }
+        if (list.length > layout.maxRows) {
+          toast(`Atención: el bloque ${block} tiene ${list.length} funcionarios y la plantilla solo trae ${layout.maxRows} filas. Agregue filas manualmente para los que falten.`);
+        }
+      });
+      return updates;
+    }
+
+    function colLettersOf(ref) { return ref.match(/[A-Z]+/)[0]; }
+    function colIndexOf(letters) {
+      let n = 0;
+      for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64);
+      return n;
+    }
+
+    // Edita solo las celdas indicadas dentro del .xlsx original, dejando estilos,
+    // validaciones de datos, notas y todo lo demás exactamente como estaban.
+    async function patchOfficialTemplate(buffer, sheetDisplayName, cellUpdates) {
+      const zip = await JSZip.loadAsync(buffer);
+      const workbookXml = await zip.file("xl/workbook.xml").async("string");
+      const relsXml = await zip.file("xl/_rels/workbook.xml.rels").async("string");
+      const parser = new DOMParser();
+      const wbDoc = parser.parseFromString(workbookXml, "application/xml");
+      const relsDoc = parser.parseFromString(relsXml, "application/xml");
+
+      const sheetEls = Array.from(wbDoc.getElementsByTagName("sheet"));
+      const targetSheetEl = sheetEls.find(el => new RegExp(sheetDisplayName, "i").test(el.getAttribute("name"))) || sheetEls[0];
+      const rId = targetSheetEl.getAttribute("r:id") || targetSheetEl.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id");
+      const relEls = Array.from(relsDoc.getElementsByTagName("Relationship"));
+      const rel = relEls.find(r => r.getAttribute("Id") === rId);
+      const target = rel.getAttribute("Target").replace(/^\/?xl\//, "").replace(/^\.?\//, "");
+      const sheetPath = "xl/" + target;
+
+      const sheetXmlStr = await zip.file(sheetPath).async("string");
+      const doc = parser.parseFromString(sheetXmlStr, "application/xml");
+      const ns = doc.documentElement.namespaceURI;
+      const sheetDataEl = doc.getElementsByTagName("sheetData")[0];
+      let rowEls = Array.from(sheetDataEl.getElementsByTagName("row"));
+
+      cellUpdates.forEach(({ ref, type, value }) => {
+        const rowNum = ref.match(/\d+/)[0];
+        let rowEl = rowEls.find(r => r.getAttribute("r") === rowNum);
+
+        if (type === "clear") {
+          if (!rowEl) return;
+          const existingCell = Array.from(rowEl.getElementsByTagName("c")).find(c => c.getAttribute("r") === ref);
+          if (existingCell) {
+            while (existingCell.firstChild) existingCell.removeChild(existingCell.firstChild);
+            existingCell.removeAttribute("t");
+          }
+          return;
+        }
+
+        if (!rowEl) {
+          rowEl = doc.createElementNS(ns, "row");
+          rowEl.setAttribute("r", rowNum);
+          const targetNum = Number(rowNum);
+          const nextRow = rowEls.find(r => Number(r.getAttribute("r")) > targetNum);
+          if (nextRow) sheetDataEl.insertBefore(rowEl, nextRow);
+          else sheetDataEl.appendChild(rowEl);
+          rowEls.push(rowEl);
+        }
+        let cellEl = Array.from(rowEl.getElementsByTagName("c")).find(c => c.getAttribute("r") === ref);
+        if (!cellEl) {
+          cellEl = doc.createElementNS(ns, "c");
+          cellEl.setAttribute("r", ref);
+          const targetCol = colIndexOf(colLettersOf(ref));
+          const existingCells = Array.from(rowEl.getElementsByTagName("c"));
+          const nextCell = existingCells.find(c => colIndexOf(colLettersOf(c.getAttribute("r"))) > targetCol);
+          if (nextCell) rowEl.insertBefore(cellEl, nextCell);
+          else rowEl.appendChild(cellEl);
+        } else {
+          while (cellEl.firstChild) cellEl.removeChild(cellEl.firstChild);
+        }
+        if (type === "str") {
+          cellEl.setAttribute("t", "inlineStr");
+          const isEl = doc.createElementNS(ns, "is");
+          const tEl = doc.createElementNS(ns, "t");
+          tEl.setAttribute("xml:space", "preserve");
+          tEl.textContent = String(value);
+          isEl.appendChild(tEl);
+          cellEl.appendChild(isEl);
+        } else {
+          cellEl.removeAttribute("t");
+          const vEl = doc.createElementNS(ns, "v");
+          vEl.textContent = String(value);
+          cellEl.appendChild(vEl);
+        }
+      });
+
+      const newSheetXml = new XMLSerializer().serializeToString(doc);
+      zip.file(sheetPath, newSheetXml);
+      return zip.generateAsync({ type: "arraybuffer" });
+    }
+
+    function downloadArrayBuffer(buffer, filename) {
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
     function fmtMinutes(min) {
       const h = Math.floor(min / 60);
       const m = min % 60;
@@ -3369,7 +3667,7 @@
           const offSite = marks.some(m => m.gps_status && m.gps_status !== "valido");
 
           const approved = findApprovedRequests(employee.id, dateKey);
-          const fullDayReq = approved.find(r => ["vacaciones", "incapacidad", "permiso_dia", "ausencia_justificada", "cobertura"].includes(r.request_type));
+          const fullDayReq = approved.find(r => ["vacaciones", "incapacidad", "incapacidad_ins", "permiso_dia", "permiso_sin_goce", "permiso_duelo", "permiso_preaviso", "ausencia_justificada", "cobertura"].includes(r.request_type));
           const permisoHoras = approved.find(r => r.request_type === "permiso_horas");
           const cambioHorario = approved.find(r => r.request_type === "cambio_horario");
 
@@ -3380,6 +3678,8 @@
             employee: employee.full_name || employee.cedula,
             cedula: employee.cedula,
             codigo: employee.codigo_empresa || "",
+            position: employee.position || "",
+            jornada: employee.jornada || "",
             projectName: employee.projects?.project_name || "",
             siteName: employee.sites?.site_name || "Sin sitio asignado",
             supervisorName: (adminUsers.find(u => u.id === employee.supervisor_user_id)?.full_name) || "Sin supervisor",
@@ -3528,6 +3828,7 @@
         $("copyCalcCommentsBtn").style.display = "none";
         $("exportCalcExcelBtn").style.display = "none";
         $("exportOfficialTemplateBtn").style.display = "none";
+        $("generateAllTemplatesBtn").style.display = "none";
         $("genWeeklyMovesBtn").style.display = "none";
         $("weeklyMovesResult").innerHTML = "";
         return;
@@ -3564,6 +3865,7 @@
       $("copyCalcCommentsBtn").style.display = lastCalcRows.some(r => r.comment) ? "" : "none";
       $("exportCalcExcelBtn").style.display = lastCalcRows.length ? "" : "none";
       $("exportOfficialTemplateBtn").style.display = lastCalcRows.length ? "" : "none";
+      $("generateAllTemplatesBtn").style.display = (lastCalcRows.length && officialTemplateBuffer) ? "" : "none";
       $("genWeeklyMovesBtn").style.display = lastCalcRows.length ? "" : "none";
     }
 
@@ -3613,55 +3915,166 @@
       XLSX.writeFile(wb, `asistencia_${fromKey}_a_${toKey}.xlsx`);
     }
 
+    const TEMPLATE_STORAGE_KEY = "lillytech_rhf27_template_v1";
+
+    function arrayBufferToBase64(buffer) {
+      let binary = "";
+      const bytes = new Uint8Array(buffer);
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+      }
+      return btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
+    }
+
+    function saveTemplateToStorage(buffer, filename) {
+      try {
+        localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify({
+          name: filename,
+          data: arrayBufferToBase64(buffer),
+          savedAt: new Date().toISOString()
+        }));
+      } catch (error) {
+        toast("La plantilla se cargó, pero no se pudo guardar para la próxima sesión (archivo muy grande para el navegador).");
+      }
+    }
+
+    function restoreOfficialTemplateFromStorage() {
+      try {
+        const raw = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        officialTemplateBuffer = base64ToArrayBuffer(saved.data);
+        const label = $("officialTemplateStatus");
+        if (label) label.textContent = `Plantilla guardada: ${saved.name} (cargada ${new Date(saved.savedAt).toLocaleDateString("es-CR")})`;
+        if ($("clearOfficialTemplateBtn")) $("clearOfficialTemplateBtn").style.display = "";
+        if (lastCalcRows.length) {
+          $("exportOfficialTemplateBtn").style.display = "";
+          $("generateAllTemplatesBtn").style.display = "";
+        }
+      } catch (error) {
+        localStorage.removeItem(TEMPLATE_STORAGE_KEY);
+      }
+    }
+
+    function clearOfficialTemplateStorage() {
+      localStorage.removeItem(TEMPLATE_STORAGE_KEY);
+      officialTemplateBuffer = null;
+      officialTemplateWorkbook = null;
+      if ($("officialTemplateStatus")) $("officialTemplateStatus").textContent = "";
+      if ($("clearOfficialTemplateBtn")) $("clearOfficialTemplateBtn").style.display = "none";
+      $("exportOfficialTemplateBtn").style.display = "none";
+      $("generateAllTemplatesBtn").style.display = "none";
+      toast("Plantilla eliminada. Subí una nueva cuando la necesités.");
+    }
+
     async function handleOfficialTemplateFile(event) {
       const file = event.target.files?.[0];
       if (!file) return;
       if (typeof XLSX === "undefined") { toast("No se cargó la librería de Excel."); return; }
       try {
         const buffer = await file.arrayBuffer();
+        officialTemplateBuffer = buffer;
         officialTemplateWorkbook = XLSX.read(buffer, { type: "array", cellStyles: true });
-        toast("Plantilla oficial cargada. Se conservarán sus hojas y formatos existentes.");
-        if (lastCalcRows.length) $("exportOfficialTemplateBtn").style.display = "";
+        saveTemplateToStorage(buffer, file.name);
+        const label = $("officialTemplateStatus");
+        if (label) label.textContent = `Plantilla guardada: ${file.name} (no hace falta volver a subirla)`;
+        if ($("clearOfficialTemplateBtn")) $("clearOfficialTemplateBtn").style.display = "";
+        toast("Plantilla oficial cargada y guardada para la próxima vez.");
+        if (lastCalcRows.length) {
+          $("exportOfficialTemplateBtn").style.display = "";
+          $("generateAllTemplatesBtn").style.display = "";
+        }
       } catch (error) {
         officialTemplateWorkbook = null;
+        officialTemplateBuffer = null;
         toast("No se pudo cargar la plantilla: " + (error?.message || ""));
       }
     }
 
     function exportOfficialTemplateExcel() {
       if (!lastCalcRows.length) { toast("Primero calculá la asistencia."); return; }
-      if (!officialTemplateWorkbook) {
+      if (!officialTemplateBuffer) {
         exportCalcExcel();
         return;
       }
-      const wb = officialTemplateWorkbook;
-      const sheetName = "Datos sistema";
-      if (wb.SheetNames.includes(sheetName)) {
-        delete wb.Sheets[sheetName];
-        wb.SheetNames = wb.SheetNames.filter(name => name !== sheetName);
+      if (typeof JSZip === "undefined") { toast("No se cargó la librería JSZip."); return; }
+      const fromKey = $("calcDateFrom").value || todayISO();
+      const toKey = $("calcDateTo").value || fromKey;
+      const weekMap = buildEmployeeWeekMap(lastCalcRows);
+      const weekDates = enumerateDays(fromKey, toKey);
+      const projectLabel = lastCalcRows.find(r => r.projectName)?.projectName || "";
+      const updates = buildCellUpdates(weekMap, projectLabel, weekDates);
+      patchOfficialTemplate(officialTemplateBuffer.slice(0), "RH-F-27", updates)
+        .then(patched => downloadArrayBuffer(patched, `RH-F-27_${slug(projectLabel)}_${fromKey}_a_${toKey}.xlsx`))
+        .catch(error => toast("No se pudo llenar la plantilla: " + (error?.message || "")));
+    }
+
+    async function generateAllProjectTemplates() {
+      if (!officialTemplateBuffer) { toast("Primero cargá la plantilla oficial arriba."); return; }
+      if (typeof JSZip === "undefined") { toast("No se cargó la librería JSZip."); return; }
+      const fromKey = $("calcDateFrom").value || todayISO();
+      const toKey = $("calcDateTo").value || fromKey;
+      const weekDates = enumerateDays(fromKey, toKey);
+      const targetProjects = adminProjects.filter(p => p.id);
+      if (!targetProjects.length) { toast("No hay proyectos cargados en el catálogo."); return; }
+      const originalProjectId = adminProjectId;
+      const bundle = new JSZip();
+      const summary = [];
+
+      for (const project of targetProjects) {
+        await selectAdminProject(project.id);
+        // Verificación anti-mezcla: si el proyecto activo no coincide, no seguimos con datos de otro proyecto
+        if (adminProjectId !== project.id) {
+          summary.push({ project: project.project_name, status: `Omitido (no se pudo confirmar el cambio de proyecto)` });
+          continue;
+        }
+        const rows = computeAttendanceRows(fromKey, toKey);
+        if (!rows.length) {
+          summary.push({ project: project.project_name, status: "Sin datos en el rango, se omitió" });
+          continue;
+        }
+        const weekMap = buildEmployeeWeekMap(rows);
+        const empleados = Object.keys(weekMap).length;
+        const updates = buildCellUpdates(weekMap, project.project_name, weekDates);
+        try {
+          const patched = await patchOfficialTemplate(officialTemplateBuffer.slice(0), "RH-F-27", updates);
+          bundle.file(`RH-F-27_${slug(project.project_name)}_${fromKey}_a_${toKey}.xlsx`, patched);
+          summary.push({ project: project.project_name, status: `OK — ${empleados} funcionario(s)` });
+        } catch (error) {
+          summary.push({ project: project.project_name, status: `Error: ${error?.message || ""}` });
+        }
       }
-      const header = ["proyecto", "funcionario", "codigo", "cedula", "local", "jornada", "horario", "entrada", "salida", "horas_trabajadas", "horas_esperadas", "tardias", "ausencias", "permisos", "vacaciones", "incapacidades", "comentarios"];
-      const rows = lastCalcRows.map(r => [
-        r.projectName || "",
-        r.employee,
-        r.codigo || "",
-        r.cedula || "",
-        r.site || "",
-        r.jornada || "",
-        r.scheduleLabel,
-        r.entradaLabel,
-        r.salidaLabel,
-        r.workedHours ?? "",
-        r.expectedHours ?? "",
-        r.tardiaMin || 0,
-        r.status === "Ausencia" ? 1 : 0,
-        /permiso/i.test(r.comment || "") ? 1 : 0,
-        /vacaciones/i.test(r.comment || "") ? 1 : 0,
-        /incapacidad/i.test(r.comment || "") ? 1 : 0,
-        r.comment || ""
-      ]);
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header, ...rows]), sheetName);
-      XLSX.writeFile(wb, `plantilla_oficial_asistencia_${todayISO()}.xlsx`);
+
+      await selectAdminProject(originalProjectId);
+
+      const okCount = summary.filter(s => s.status.startsWith("OK")).length;
+      if (okCount) {
+        const zipBuffer = await bundle.generateAsync({ type: "arraybuffer" });
+        const a = document.createElement("a");
+        const blob = new Blob([zipBuffer], { type: "application/zip" });
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = `RH-F-27_todos_los_proyectos_${fromKey}_a_${toKey}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }
+
+      const resumenHtml = `<div class="table-wrap" style="margin-top:10px"><table>
+        <thead><tr><th>Proyecto</th><th>Resultado</th></tr></thead>
+        <tbody>${summary.map(s => `<tr><td>${escapeHtml(s.project)}</td><td>${escapeHtml(s.status)}</td></tr>`).join("")}</tbody>
+      </table></div>`;
+      $("weeklyMovesResult").innerHTML = resumenHtml + ($("weeklyMovesResult").innerHTML || "");
+      toast(okCount ? `Listo: ZIP descargado con ${okCount} archivo(s). Revisá el resumen abajo.` : "No se generó ningún archivo — revisá el resumen abajo.");
     }
 
     function setLastWeek() {
@@ -4952,7 +5365,9 @@
       $("copyCalcCommentsBtn").addEventListener("click", copyCalcComments);
       $("exportCalcExcelBtn").addEventListener("click", exportCalcExcel);
       $("exportOfficialTemplateBtn").addEventListener("click", exportOfficialTemplateExcel);
+      $("generateAllTemplatesBtn").addEventListener("click", generateAllProjectTemplates);
       $("officialTemplateFile").addEventListener("change", handleOfficialTemplateFile);
+      $("clearOfficialTemplateBtn")?.addEventListener("click", clearOfficialTemplateStorage);
       $("lastWeekBtn").addEventListener("click", setLastWeek);
       $("genDashboardBtn").addEventListener("click", renderDashboard);
       $("genWeeklyMovesBtn").addEventListener("click", renderWeeklyMoves);
@@ -5071,6 +5486,7 @@
 
     hydrateEmployee();
     bindEvents();
+    restoreOfficialTemplateFromStorage();
     setupCollapsiblePanels();
     startClock();
     renderAll();
