@@ -2718,6 +2718,10 @@
       return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
     }
 
+    function normalizeCedula(value) {
+      return String(value || "").replace(/[^0-9]/g, "");
+    }
+
     function normalizeImportBool(value) {
       return ["si", "sí", "s", "true", "1", "x"].includes(String(value ?? "").trim().toLowerCase());
     }
@@ -2980,7 +2984,7 @@
         const effFrom = normalizeImportDate(get("effective_from")) || "2000-01-01";
         const effTo = normalizeImportDate(get("effective_to"));
         const expRaw = get("expected_hours");
-        const employee = adminEmployees.find(item => (cedula && item.cedula === cedula) || (empCode && item.employee_code === empCode));
+        const employee = adminEmployees.find(item => (cedula && normalizeCedula(item.cedula) === normalizeCedula(cedula)) || (empCode && item.employee_code === empCode));
         const errors = [];
         if (!employee) errors.push("funcionario no está en este proyecto");
         if (dow == null) errors.push("día inválido");
