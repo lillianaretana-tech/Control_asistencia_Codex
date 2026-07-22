@@ -766,6 +766,12 @@
               </div>
               <div id="projectImportPreview" style="margin-top:12px"><div class="empty">Seleccione un archivo para previsualizar.</div></div>
             </div>
+            <div class="status-box" style="margin-top:12px">
+              <div class="status-title">Catálogo de proyectos</div>
+              <div class="helper">Cliente, código y proyecto tal como quedaron registrados. Use "Seleccionar" para trabajar con ese proyecto arriba en toda la app.</div>
+              <label style="margin-top:8px">Buscar proyecto<input id="projectCatalogSearch" placeholder="Nombre, código o cliente"></label>
+              <div id="projectCatalogList" class="grid site-list" style="margin-top:12px"></div>
+            </div>
           </div>
         </section>
 
@@ -2068,6 +2074,7 @@
         if (projectError) throw projectError;
         adminProjects = projects || [];
         renderProjectOptions();
+        renderProjectCatalog();
         const savedScope = readAdminScope();
         if (!adminProjectId || !adminProjects.some(project => project.id === adminProjectId)) {
           const savedProjectValid = savedScope.projectId === ALL_PROJECTS_VALUE
@@ -5107,6 +5114,29 @@
       $("siteFormTitle").textContent = "Agregar local";
     }
 
+    function renderProjectCatalog() {
+      const wrap = $("projectCatalogList");
+      if (!wrap) return;
+      const q = normalizeText($("projectCatalogSearch")?.value || "");
+      const filtered = adminProjects.filter(p => {
+        const haystack = normalizeText(`${p.project_name || ""} ${p.project_code || ""} ${p.clients?.client_name || ""} ${p.clients?.client_code || ""}`);
+        return !q || haystack.includes(q);
+      });
+      wrap.innerHTML = filtered.map(p => `
+        <article class="site-card">
+          <div><span class="badge neutral">${escapeHtml(p.project_code || "-")}</span></div>
+          <h3>${escapeHtml(p.project_name || "-")}</h3>
+          <div class="site-meta">
+            Cliente: ${escapeHtml(p.clients?.client_name || "-")} (${escapeHtml(p.clients?.client_code || "-")})<br>
+            ID: ${escapeHtml(p.id)}
+          </div>
+          <div class="site-actions">
+            <button class="btn small blue" data-select-project="${escapeHtml(p.id)}">Seleccionar</button>
+          </div>
+        </article>
+      `).join("") || `<div class="empty">No hay proyectos con ese criterio.</div>`;
+    }
+
     function renderSites() {
       const q = normalizeText($("siteCatalogSearch").value);
       const filtered = sites.filter(site => {
@@ -5472,6 +5502,13 @@
       $("saveSiteBtn").addEventListener("click", saveSiteFromForm);
       $("captureSiteLocationBtn").addEventListener("click", captureSiteLocation);
       $("siteCatalogSearch").addEventListener("input", renderSites);
+      $("projectCatalogSearch")?.addEventListener("input", renderProjectCatalog);
+      $("projectCatalogList")?.addEventListener("click", async (event) => {
+        const btn = event.target.closest("[data-select-project]");
+        if (!btn) return;
+        await selectAdminProject(btn.dataset.selectProject);
+        toast("Proyecto seleccionado.");
+      });
       $("siteList").addEventListener("click", (event) => {
         const editId = event.target.dataset.editSite;
         const toggleId = event.target.dataset.toggleSite;
