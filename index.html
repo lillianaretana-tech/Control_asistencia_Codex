@@ -3420,7 +3420,7 @@
       const add = (label) => { if (!codes.includes(label)) codes.push(label); };
       const tMatch = text.match(/\bT\s+\d+min\b/);
       if (tMatch) add(tMatch[0]);
-      const heMatch = text.match(/\bHE\s*\+?[\d.]+h\b/);
+      const heMatch = text.match(/\bHE\s*\+?\d+min\b/);
       if (heMatch) add(heMatch[0]);
       if (/\bAI\b/.test(text)) add("AI");
       if (/\bAJ\b/.test(text)) add("AJ");
@@ -3774,9 +3774,9 @@
                 parts.push(`Salida ant. ${row.earlyMin}min`);
               }
               if (row.workedHours != null && row.expectedHours) {
-                const diff = Math.round((row.workedHours - row.expectedHours) * 100) / 100;
-                if (Math.abs(diff) >= 0.25) {
-                  parts.push(`${diff > 0 ? "HE" : "Dif."} ${diff > 0 ? "+" : ""}${diff}h`);
+                const diffMin = Math.round((row.workedHours - row.expectedHours) * 60);
+                if (Math.abs(diffMin) >= 15) {
+                  parts.push(`${diffMin > 0 ? "HE" : "Dif."} ${diffMin > 0 ? "+" : ""}${diffMin}min`);
                 }
               }
               if (permisoHoras) parts.push("PP");
