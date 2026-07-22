@@ -2715,14 +2715,25 @@
       return match ? `${match[1].padStart(2, "0")}:${match[2]}` : null;
     }
 
+    const MONTH_NAMES_ES = { ene: 1, jan: 1, feb: 2, mar: 3, abr: 4, apr: 4, may: 5, jun: 6, jul: 7, ago: 8, aug: 8, sep: 9, set: 9, oct: 10, nov: 11, dic: 12, dec: 12 };
+
     function normalizeImportDate(value) {
       if (value == null || value === "") return null;
       if (value instanceof Date) return value.toISOString().slice(0, 10);
       if (typeof value === "number") return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);
-      const s = String(value).trim();
+      const s = String(value).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
+      const slash = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/);
+      if (slash) return `${slash[3]}-${slash[2].padStart(2, "0")}-${slash[1].padStart(2, "0")}`;
+      const named = s.match(/^(\d{1,2})[\s\-]*(?:de\s*)?([a-z]{3,})[a-z]*[\s\-]*(?:de\s*)?(\d{4}|\d{2})$/);
+      if (named) {
+        const mon = MONTH_NAMES_ES[named[2].slice(0, 3)];
+        if (mon) {
+          const year = named[3].length === 2 ? Number("20" + named[3]) : Number(named[3]);
+          return `${year}-${String(mon).padStart(2, "0")}-${named[1].padStart(2, "0")}`;
+        }
+      }
+      return null;
     }
 
     function normalizeCedula(value) {
