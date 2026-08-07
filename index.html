@@ -877,6 +877,13 @@
             <button id="refreshIncidentsBtn" class="btn small ghost">Actualizar</button>
           </div>
           <div class="panel-body">
+            <div class="helper" style="margin-bottom:10px">El GPS es opcional: no se muestran como incidencia las marcas realizadas sin ubicación.</div>
+            <div class="form-grid cols-2" style="margin-bottom:10px">
+              <label>Punto / local
+                <select id="incidentSiteSelect"><option value="">Todos los puntos</option></select>
+              </label>
+              <label>&nbsp;<button id="selectIncidentSiteBtn" class="btn small ghost" type="button">Seleccionar todo el punto</button></label>
+            </div>
             <div class="actions" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom:10px">
               <button id="selectAllIncidentsBtn" class="btn small ghost" type="button">Seleccionar todas</button>
               <button id="approveSelectedIncidentsBtn" class="btn small blue" type="button">Aprobar seleccionadas</button>
@@ -1124,6 +1131,7 @@
     let adminAllSchedules = [];
     let lastCalcRows = [];
     let adminRequests = [];
+    let adminIncidents = [];
     let weeklyMovesData = [];
     let adminUsers = [];
     let adminSession = null;
@@ -4268,23 +4276,46 @@
       try {
         let query = supabaseClient
           .from("attendance_incidents")
-          .select("id, created_at, incident_type, status, employee_comment, employees(full_name, cedula), sites:site_id(site_name)")
+          .select("id, created_at, incident_type, status, employee_comment, site_id, employees(full_name, cedula), sites:site_id(site_name)")
           .eq("status", "pendiente")
           .order("created_at", { ascending: false })
-          .limit(200);
+          .limit(1000);
         if (!isAllProjectsSelected()) query = query.eq("project_id", adminProjectId);
         const { data, error } = await query;
         if (error) throw error;
-        renderIncidents(data || []);
+        adminIncidents = (data || []).filter(item => !isOptionalGpsIncident(item.incident_type));
+        renderIncidentSiteOptions(adminIncidents);
+        renderIncidents(adminIncidents);
       } catch (error) {
         $("incidentsTable").innerHTML = `<tr><td colspan="7"><div class="empty">${escapeHtml(error?.message || "No se pudieron cargar incidencias.")}</div></td></tr>`;
       }
     }
 
+    function isOptionalGpsIncident(type) {
+      const normalized = String(type || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+      return ["sin_gps", "sin_permiso", "sin_permiso_gps", "gps_sin_permiso"].includes(normalized);
+    }
+
+    function renderIncidentSiteOptions(items) {
+      const select = $("incidentSiteSelect");
+      if (!select) return;
+      const current = select.value;
+      const sites = new Map();
+      items.forEach(item => {
+        const key = String(item.site_id || "__NO_SITE__");
+        if (!sites.has(key)) sites.set(key, item.sites?.site_name || "Sin sitio");
+      });
+      select.innerHTML = `<option value="">Todos los puntos</option>` + [...sites.entries()]
+        .sort((a, b) => a[1].localeCompare(b[1], "es"))
+        .map(([id, name]) => `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`)
+        .join("");
+      if ([...sites.keys()].includes(current)) select.value = current;
+    }
+
     function renderIncidents(items) {
       $("incidentsTable").innerHTML = items.map(item => `
         <tr>
-          <td><input type="checkbox" class="incident-check" value="${escapeHtml(item.id)}" aria-label="Seleccionar incidencia"></td>
+          <td><input type="checkbox" class="incident-check" value="${escapeHtml(item.id)}" data-incident-site="${escapeHtml(String(item.site_id || "__NO_SITE__"))}" aria-label="Seleccionar incidencia"></td>
           <td>${fmtDateTime.format(new Date(item.created_at))}</td>
           <td><b>${escapeHtml(item.employees?.full_name || "-")}</b><br><span class="subtle">${escapeHtml(item.employees?.cedula || "")}</span></td>
           <td>${escapeHtml(item.sites?.site_name || "Sin sitio")}</td>
@@ -4306,6 +4337,18 @@
       document.querySelectorAll(".incident-check").forEach(input => {
         input.checked = selected;
       });
+    }
+
+    function selectIncidentsForSite() {
+      const siteId = $("incidentSiteSelect")?.value;
+      if (!siteId) {
+        toast("Seleccione primero un punto o local.");
+        return;
+      }
+      const checks = [...document.querySelectorAll(".incident-check")]
+        .filter(input => input.dataset.incidentSite === siteId && !input.disabled);
+      checks.forEach(input => { input.checked = true; });
+      toast(checks.length ? `Seleccionadas ${checks.length} incidencias del punto.` : "Ese punto no tiene incidencias pendientes.");
     }
 
     async function resolveIncident(incidentId, status) {
@@ -5496,6 +5539,7 @@
         const shouldSelect = checks.some(input => !input.checked);
         setAllIncidentsSelected(shouldSelect);
       });
+      $("selectIncidentSiteBtn").addEventListener("click", selectIncidentsForSite);
       $("approveSelectedIncidentsBtn").addEventListener("click", () => resolveSelectedIncidents("aprobada"));
       $("rejectSelectedIncidentsBtn").addEventListener("click", () => resolveSelectedIncidents("rechazada"));
       ["filterDate", "filterEmployee", "filterSite", "filterProvince", "filterCanton", "filterType", "filterGps", "filterOrder"]
